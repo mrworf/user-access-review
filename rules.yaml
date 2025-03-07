@@ -1,0 +1,14 @@
+comparison:
+  exceptions:
+    - field: user_id
+      pattern: ^admin[^@]+@[^.]+\.com$
+      reason: Admin accounts are typically google groups, not individual users
+      only:
+        - hubspot
+      skip:
+        - something
+  rules:
+    - name: Don't allow non-company email addresses
+      field: user_id
+      pattern: ^(?![^@]+@company.com$).*$
+      reason: Non-company email addresses (\1) are not allowed
