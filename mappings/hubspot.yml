@@ -1,0 +1,17 @@
+mapping:
+  user_id: Email
+  email: Email
+  first_name: First Name
+  last_name: Last Name
+  status: Deactivated
+  last_login: Last Active
+  two_factor: Two Factor Authentication Enabled
+
+rewrite:
+  status:
+    active: no
+    inactive: yes
+    unknown (\1): (.*)
+  last_login:
+    1/1/1970: 
+    \1 \2: ([^_]+)_(.*)

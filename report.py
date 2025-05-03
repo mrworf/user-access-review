@@ -19,23 +19,23 @@ class Report:
         # Add a row for each finding
         for s in source:
             for user_id, findings in s.findings.items():
-                if not isinstance(findings, list):
+                for finding in findings:
                     self.rows.append({
                         'source': s.name,
                         'user_id': user_id,
-                        'finding_type': 'CLEAN',
+                        'severity': str(finding.severity).upper(),
+                        'finding': finding.key,
+                        'message': finding.message
+                    })
+            for user_id, user in s.users.items():
+                if user_id not in s.findings:
+                    self.rows.append({
+                        'source': s.name,
+                        'user_id': user_id,
+                        'severity': 'INFO',
+                        'finding': 'CLEAN',
                         'message': 'No issues found'
                     })
-                else:
-                    for finding in findings:
-                        self.rows.append({
-                            'source': s.name,
-                            'user_id': user_id,
-                            'finding_type': str(finding.severity).upper(),
-                            'message': finding.message
-                        })
-        
-    
     def save(self, filename):
         """Save the report to a CSV file
         
@@ -43,6 +43,6 @@ class Report:
             filename: The name of the file to save to
         """
         with open(filename, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=['source', 'user_id', 'finding_type', 'message'])
+            writer = csv.DictWriter(f, fieldnames=['source', 'user_id', 'severity', 'finding', 'message'])
             writer.writeheader()
             writer.writerows(self.rows)

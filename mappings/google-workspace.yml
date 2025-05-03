@@ -1,0 +1,21 @@
+mapping:
+  user_id: Email Address [Required]
+  email: Email Address [Required]
+  first_name: First Name [Required]
+  last_name: Last Name [Required]
+  status: Status [READ ONLY]
+  last_login: Last Sign In [READ ONLY]
+  title: Employee Title
+  department: Department
+  location: Building ID
+  manager: Manager Email
+
+rewrite:
+  status:
+    active: Active
+    inactive: Archived
+    suspended: Suspended
+    deleted: Deleted
+    unknown (\1): (.*)
+  last_login:
+    1/1/1970: Never logged in

@@ -18,12 +18,13 @@ class StaticAnalysis:
         # Check each user
         for user in source.users.values():
             # Check manager
-            if user['manager'] == '':
-                source.add_finding(user['user_id'], FindingType.MISSING_MANAGER)
-            elif user['manager'] not in source.users:
-                source.add_finding(user['user_id'], FindingType.INVALID_MANAGER, manager=user['manager'])
-            elif not source.has_logged_in(source.users[user['manager']]) and source.has_logged_in(user):
-                source.add_finding(user['user_id'], FindingType.INACTIVE_MANAGER, manager=user['manager'])
+            if user['manager'] != None: # Manager is supported by the source
+                if user['manager'] == '':
+                    source.add_finding(user['user_id'], FindingType.MISSING_MANAGER)
+                elif user['manager'] not in source.users:
+                    source.add_finding(user['user_id'], FindingType.INVALID_MANAGER, manager=user['manager'])
+                elif not source.has_logged_in(source.users[user['manager']]) and source.has_logged_in(user):
+                    source.add_finding(user['user_id'], FindingType.INACTIVE_MANAGER, manager=user['manager'])
             
             # Check last login
             if not source.has_logged_in(user):
