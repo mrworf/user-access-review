@@ -8,18 +8,20 @@ import dateutil.parser
 import pytz
 
 from common_fields import common_fields
+from findings import Finding, Severity
 
 class DataSource:
     __NEVER_LOGGED_IN = dateutil.parser.parse('1970-01-01T00:00:00Z') # Not the ideal way to handle this, but let's do this for now
 
     def __init__(self):
         self.name = None
-        self.users = None
+        self.users = {}
         self.mapping = None
         self.tz = {tz: pytz.timezone(tz) for tz in pytz.all_timezones}
         
         # Add some missing timezones
         self.tz['EDT'] = self.tz['EST']
+        self.findings = {}  # Single array for all findings, keyed by user_id
 
     def load(self, csv_file, yaml_file):
         config = self.load_yaml(yaml_file)
@@ -30,9 +32,6 @@ class DataSource:
         self.name = os.path.splitext(os.path.basename(csv_file))[0]
 
         self.managers = {}
-        self.warnings = {}
-        self.errors = {}
-        self.notice = {}
         # Separate out the managers for easier processing
         for user in self.users.values():
             if user['manager'] != '' and user['manager'] not in self.managers:
@@ -119,25 +118,70 @@ class DataSource:
         yaml.SafeLoader.add_constructor('tag:yaml.org,2002:bool', no_bool_constructor)
 
         if not file_path or not os.path.exists(file_path):
-            return {}
+            raise ValueError(f'File "{file_path}" does not exist')
         with open(file_path, 'r') as file:
             data = yaml.safe_load(file)
         return data
     
-    def add_error(self, user_id, message):
-        if user_id not in self.errors:
-            self.errors[user_id] = []
-        self.errors[user_id].append(message)
-
-    def add_warning(self, user_id, message):
-        if user_id not in self.warnings:
-            self.warnings[user_id] = []
-        self.warnings[user_id].append(message)
-
-    def add_notice(self, user_id, message):
-        if user_id not in self.notice:
-            self.notice[user_id] = []
-        self.notice[user_id].append(message)
+    def add_finding(self, user_id: str, finding: Finding, **kwargs):
+        """Add a finding (error, warning, or notice) for a user
+        
+        Args:
+            user_id: The user ID
+            finding: The Finding object
+            **kwargs: Parameters to format into the finding description
+        """
+        if user_id not in self.findings:
+            self.findings[user_id] = []
+        self.findings[user_id].append(finding(**kwargs))
+    
+    def get_findings_by_severity(self, severity: Severity):
+        """Get all findings of a specific severity
+        
+        Args:
+            severity: The severity level to filter by
+            
+        Returns:
+            Dictionary of user_id to list of findings with the specified severity
+        """
+        result = {}
+        for user_id, findings in self.findings.items():
+            user_findings = [f for f in findings if f.severity == severity]
+            if user_findings:
+                result[user_id] = user_findings
+        return result
+    
+    def has_findings(self):
+        """Check if there are any findings
+        
+        Returns:
+            True if there are any findings, False otherwise
+        """
+        return len(self.findings) > 0
+    
+    def has_errors(self):
+        """Check if there are any error-level findings
+        
+        Returns:
+            True if there are any errors, False otherwise
+        """
+        return len(self.get_findings_by_severity(Severity.ERROR)) > 0
+    
+    def has_warnings(self):
+        """Check if there are any warning-level findings
+        
+        Returns:
+            True if there are any warnings, False otherwise
+        """
+        return len(self.get_findings_by_severity(Severity.WARNING)) > 0
+    
+    def has_notices(self):
+        """Check if there are any notice-level findings
+        
+        Returns:
+            True if there are any notices, False otherwise
+        """
+        return len(self.get_findings_by_severity(Severity.NOTICE)) > 0
 
     def has_logged_in(self, user):
         return user['last_login'] != self.__NEVER_LOGGED_IN 

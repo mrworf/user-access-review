@@ -3,28 +3,24 @@
 import os
 import yaml
 import re
+from findings import FindingType, Severity
 
 class DynamicAnalysis:
-    def __init__(self, configuration):
-        self.configuration = self.load_yaml(configuration)
-        self.warnings = {}
-        self.errors = {}
-        self.notice = {}
+    def __init__(self, rules_file = None):
+        self.rules = self.load_yaml(rules_file) if rules_file else {}  
+        self.findings = {}
 
-    def add_error(self, user_id, message):
-        if user_id not in self.errors:
-            self.errors[user_id] = []
-        self.errors[user_id].append(message)
-
-    def add_warning(self, user_id, message):
-        if user_id not in self.warnings:
-            self.warnings[user_id] = []
-        self.warnings[user_id].append(message)
-
-    def add_notice(self, user_id, message):
-        if user_id not in self.notice:
-            self.notice[user_id] = []
-        self.notice[user_id].append(message)
+    def add_finding(self, user_id, finding: FindingType, **kwargs):
+        """Add a finding for a user
+        
+        Args:
+            user_id: The user ID
+            finding: The Finding object
+            **kwargs: Parameters to format into the finding description
+        """
+        if user_id not in self.findings:
+            self.findings[user_id] = []
+        self.findings[user_id].append(finding(**kwargs))
 
     def load_yaml(self, file_path):
         # Load YAML data without converting 'yes' and 'no' to booleans
@@ -33,15 +29,15 @@ class DynamicAnalysis:
         yaml.SafeLoader.add_constructor('tag:yaml.org,2002:bool', no_bool_constructor)
 
         if not file_path or not os.path.exists(file_path):
-            return {}
+            raise ValueError(f'File "{file_path}" does not exist')
         with open(file_path, 'r') as file:
             data = yaml.safe_load(file)
         return data
 
     def compare(self, source, compare):
         # Get the rules for comparing the source and compare data
-        comp_rules = self.configuration.get('comparison', {}).get('rules', [])
-        comp_exceptions = self.configuration.get('comparison', {}).get('exceptions', [])
+        comp_rules = self.rules.get('comparison', {}).get('rules', [])
+        comp_exceptions = self.rules.get('comparison', {}).get('exceptions', [])
 
         # First, find all users in the compare that are not in the source
         for user_id in compare.users.keys():
@@ -60,7 +56,7 @@ class DynamicAnalysis:
                     reason = exception.get('reason')
                     if pattern.match(value):
                         # We found a match, so we can skip this user, but document it
-                        self.add_notice(user_id, f'Doesn\'t exist in source but is a documented exception: {reason}')
+                        compare.add_finding(user_id, FindingType.DOCUMENTED_EXCEPTION, reason=reason)
                         break
                 else:
-                    self.add_warning(user_id, f'Not found in source data') 
+                    compare.add_finding(user_id, FindingType.NOT_IN_SOURCE)

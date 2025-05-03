@@ -1,0 +1,12 @@
+truth:
+  name: Google Workspace
+  source: data/gw.csv
+  map: data/gw.yml
+
+comparisons:
+  - name: Hubspot
+    source: data/hubspot.csv
+    map: data/hubspot.yml
+
+output: test
+rules: rules.yml
