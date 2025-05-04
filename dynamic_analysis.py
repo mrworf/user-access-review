@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 import os
 import yaml
 import re
@@ -34,6 +35,16 @@ class DynamicAnalysis:
             data = yaml.safe_load(file)
         return data
 
+    def field_supported(self, source, compare, field):
+        return field in source.mapping and field in compare.mapping
+
+    def fields_differ(self, source, compare, user_id, field):
+        if not self.field_supported(source, compare, field):
+            # Field is not mapped, so we can't compare it
+            logging.debug(f'Field "{field}" is not mapped, so we can\'t compare it')
+            return False
+        return source.users[user_id].get(field) != compare.users[user_id].get(field)
+
     def compare(self, source, compare):
         # Get the rules for comparing the source and compare data
         comp_rules = self.rules.get('comparison', {}).get('rules', [])
@@ -60,3 +71,24 @@ class DynamicAnalysis:
                         break
                 else:
                     compare.add_finding(user_id, FindingType.NOT_IN_SOURCE)
+            else: # User exists in source
+                # Check if the user status has discrepancies
+                if self.fields_differ(source, compare, user_id, 'status'):
+                    # Discrepancy, document it
+                    if source.users[user_id].get('status') == 'active':
+                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_COMPARE, status=compare.users[user_id].get('status'), source_status=source.users[user_id].get('status'))
+                    elif compare.users[user_id].get('status') == 'active':
+                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_SOURCE, status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
+                if self.fields_differ(source, compare, user_id, 'first_name'):
+                    compare.add_finding(user_id, FindingType.NAME_MISMATCH, source_name=source.users[user_id].get('first_name'), compare_name=compare.users[user_id].get('first_name'))
+                if self.fields_differ(source, compare, user_id, 'last_name'):
+                    compare.add_finding(user_id, FindingType.NAME_MISMATCH, source_name=source.users[user_id].get('last_name'), compare_name=compare.users[user_id].get('last_name'))
+                if self.fields_differ(source, compare, user_id, 'email'):
+                    compare.add_finding(user_id, FindingType.EMAIL_MISMATCH, source_email=source.users[user_id].get('email'), compare_email=compare.users[user_id].get('email'))
+                if self.field_supported(source, compare, 'email'):
+                    # Compare the email domain
+                    source_domain = source.users[user_id].get('email').split('@')[1]
+                    compare_domain = compare.users[user_id].get('email').split('@')[1]
+                    if source_domain != compare_domain:
+                        compare.add_finding(user_id, FindingType.DOMAIN_MISMATCH, source_domain=source_domain, compare_domain=compare_domain)
+        # Next

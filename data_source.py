@@ -3,7 +3,7 @@
 import os
 import csv
 import yaml
-import re
+import regex
 import dateutil.parser
 import pytz
 
@@ -39,6 +39,41 @@ class DataSource:
                 if mgr is not None:
                     self.managers[user['manager']] = mgr
 
+    # TODO: Move this to static analysis
+    def conform(self, value, field):
+        if field not in common_fields:
+            raise ValueError(f'Field "{field}" not found in common fields for field "{field}"')
+        if isinstance(common_fields[field], list):
+            if value not in common_fields[field]:
+                raise ValueError(f'Value "{value}" not in allowed values for field "{field}"')
+
+        if common_fields[field] == 'date':
+            if value is None:
+                value = ''
+            try:
+                # Try to parse the date and time
+                value = dateutil.parser.parse(value, tzinfos=self.tz)
+                if value.tzinfo is None:
+                    value = value.replace(tzinfo=pytz.UTC)
+            except ValueError:
+                raise ValueError(f'Value "{value}" is not a valid date for field "{field}"')
+        elif common_fields[field] == 'bool':
+            if value is None:
+                value = ''
+            if value.lower() in ['true', 'false']:
+                value = value.lower() == 'true'
+            elif value.lower() in ['yes', 'no']:
+                value = value.lower() == 'yes'
+            elif value.lower() in ['1', '0']:
+                value = value.lower() == '1'
+            else:
+                raise ValueError(f'Value "{value}" is not a valid boolean for field "{field}"')
+        else:
+            if value is None:
+                value = ''
+        return value
+
+    '''
     def conform(self, value, field):
         if field not in common_fields:
             raise ValueError(f'Field "{field}" not found in common fields for field "{field}"')
@@ -46,13 +81,21 @@ class DataSource:
             if value not in common_fields[field]:
                 raise ValueError(f'Value "{value}" not in allowed values for field "{field}"')
         elif common_fields[field] == 'email':
+            if value is None:
+                value = ''
             value = value.lower().strip()
-            if not re.match(r'[^@]+@[^@]+\.[^@]+', value) and value != '':
+            if not regex.match(r'[^@]+@[^@]+\.[^@]+', value) and value != '':
                 raise ValueError(f'Value "{value}" is not a valid email address for field "{field}"')
         elif common_fields[field] == 'name':
-            if not re.match(r'[A-Za-z\- ]+', value):
+            if value is None:
+                value = ''
+            if not regex.match(r'^\p{L}[\p{L}\s\-\.\,\'\(\)0-9]*$', value) and value != '':
                 raise ValueError(f'Value "{value}" is not a valid name for field "{field}"')
+            else:
+                value = value.casefold()
         elif common_fields[field] == 'date':
+            if value is None:
+                value = ''
             try:
                 # Try to parse the date and time
                 value = dateutil.parser.parse(value, tzinfos=self.tz)
@@ -62,8 +105,10 @@ class DataSource:
                 raise ValueError(f'Value "{value}" is not a valid date for field "{field}"')
         elif common_fields[field] == 'str':
             if value is None:
-                raise ValueError(f'Value "{value}" is not a valid string for field "{field}"')
+                value = ''
         elif common_fields[field] == 'bool':
+            if value is None:
+                value = ''
             if value.lower() in ['true', 'false']:
                 value = value.lower() == 'true'
             elif value.lower() in ['yes', 'no']:
@@ -73,43 +118,47 @@ class DataSource:
             else:
                 raise ValueError(f'Value "{value}" is not a valid boolean for field "{field}"')
         return value
+    '''
 
     def load_csv(self, file_path):
-        with open(file_path, mode='r') as file:
-            csv_reader = csv.DictReader(file)
-            data = {}
-            for row in csv_reader:
-                line = {}
-                # Grab only the mapped fields, ignore the rest
-                for k, v in self.mapping.items():
-                    line[k] = row.get(v)
-                    if line[k] is None:
-                        raise ValueError(f'Field "{v}" not found in CSV file')
-                    # Rewrite the value if needed
-                    if k in self.rewrite:
-                        # Next, loop through possible combos
-                        # Doing this in a loop allows for "else" conditions
-                        # Also allow use of backreferences to change the value
-                        for dst, src in self.rewrite[k].items():
-                            if src is None and line[k] == '':
-                                line[k] = dst
-                                break
-                            elif src is None:
-                                continue # We can't match a blank value
-                            match = re.match(src, line[k])
-                            if match:
-                                line[k] = match.expand(dst)
-                                break
-                    # Conform the value to the expected type
-                    line[k] = self.conform(line[k], k)
-                if line['user_id'] in data:
-                    raise ValueError(f'Duplicate user ID "{line["user_id"]}" found in CSV file')
-                # Lastly, we need to add any missing fields
-                for k, v in common_fields.items():
-                    if k not in line:
-                        line[k] = None
-                data[line['user_id']] = line
-        return data
+        try:
+            with open(file_path, mode='r') as file:
+                csv_reader = csv.DictReader(file)
+                data = {}
+                for row in csv_reader:
+                    line = {}
+                    # Grab only the mapped fields, ignore the rest
+                    for k, v in self.mapping.items():
+                        line[k] = row.get(v)
+                        if line[k] is None:
+                            raise ValueError(f'Field "{v}" not found in CSV file')
+                        # Rewrite the value if needed
+                        if k in self.rewrite:
+                            # Next, loop through possible combos
+                            # Doing this in a loop allows for "else" conditions
+                            # Also allow use of backreferences to change the value
+                            for dst, src in self.rewrite[k].items():
+                                if src is None and line[k] == '':
+                                    line[k] = dst
+                                    break
+                                elif src is None:
+                                    continue # We can't match a blank value
+                                match = regex.match(src, line[k])
+                                if match:
+                                    line[k] = match.expand(dst)
+                                    break
+                        # Conform the value to the expected type
+                        line[k] = self.conform(line[k], k)
+                    if line['user_id'] in data:
+                        raise ValueError(f'Duplicate user ID "{line["user_id"]}" found in CSV file')
+                    # Lastly, we need to add any missing fields
+                    for k, v in common_fields.items():
+                        if k not in line:
+                            line[k] = None
+                    data[line['user_id']] = line
+            return data
+        except Exception as e:
+            raise ValueError(f'Error loading CSV file "{file_path}": {e}')
 
     def load_yaml(self, file_path):
         # Load YAML data without converting 'yes' and 'no' to booleans
@@ -119,9 +168,12 @@ class DataSource:
 
         if not file_path or not os.path.exists(file_path):
             raise ValueError(f'File "{file_path}" does not exist')
-        with open(file_path, 'r') as file:
-            data = yaml.safe_load(file)
-        return data
+        try:
+            with open(file_path, 'r') as file:
+                data = yaml.safe_load(file)
+            return data
+        except Exception as e:
+            raise ValueError(f'Error loading YAML file "{file_path}": {e}')
     
     def add_finding(self, user_id: str, finding: Finding, **kwargs):
         """Add a finding (error, warning, or notice) for a user

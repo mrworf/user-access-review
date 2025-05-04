@@ -1,0 +1,15 @@
+mapping:
+  user_id: Email
+  email: Email
+  first_name: Name
+  last_name: Name
+  status: User Status
+
+rewrite:
+  first_name:
+    \1: (^[^ ]+)
+  last_name:
+    \2: (^[^ ]+) +(.*)
+  status:
+    active: Activated
+    inactive: Deactivated - No Access

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from enum import Enum
+import logging
 
 class Severity(Enum):
     """Severity levels for findings"""
@@ -29,7 +30,13 @@ class Finding:
             A new Finding instance with the formatted message
         """
         new_finding = Finding(self.key, self._description, self.severity)
-        new_finding._formatted_message = self._description.format(**kwargs)
+        try:
+            new_finding._formatted_message = self._description.format(**kwargs)
+        except KeyError as e:
+            # Replace missing parameters with '##N/A##'
+            logging.exception(f'Missing parameter "{e}" in finding "{self.key}"')
+            param_name = str(e).strip("'")
+            new_finding._formatted_message = self._description.format(**{**kwargs, param_name: '##N/A##'})
         return new_finding
 
     @property
@@ -64,27 +71,27 @@ class FindingType:
     """Finding types and their descriptions for user access review"""
     
     # Manager related findings
-    MISSING_MANAGER = Finding("MISSING_MANAGER", "User has no manager", Severity.ERROR)
-    INVALID_MANAGER = Finding("INVALID_MANAGER", "Manager \"{manager}\" not found in user list", Severity.ERROR)
-    INACTIVE_MANAGER = Finding("INACTIVE_MANAGER", "Manager \"{manager}\" is not active, but user is", Severity.ERROR)
+    MISSING_MANAGER = Finding("MISSING_MANAGER", "User has no manager", Severity.WARNING)
+    INVALID_MANAGER = Finding("INVALID_MANAGER", 'Manager "{manager}" not found in user list', Severity.ERROR)
+    INACTIVE_MANAGER = Finding("INACTIVE_MANAGER", 'Manager "{manager}" is not active, but user is', Severity.ERROR)
     
     # Source of truth related findings
     NOT_IN_SOURCE = Finding("NOT_IN_SOURCE", "User not found in source of truth", Severity.ERROR)
-    NOT_ACTIVE_SOURCE = Finding("NOT_ACTIVE_SOURCE", "User has never logged in", Severity.WARNING)
+    NOT_ACTIVE_SOURCE = Finding("NOT_ACTIVE_SOURCE", 'User is "{status}" in source of truth while comparison is "{compare_status}"', Severity.WARNING)
+    NEVER_LOGGED_IN = Finding("NEVER_LOGGED_IN", "User has never logged in", Severity.WARNING)
     
     # Comparison related findings
     NOT_IN_COMPARE = Finding("NOT_IN_COMPARE", "User does not exist in the comparison data", Severity.ERROR)
-    NOT_ACTIVE_COMPARE = Finding("NOT_ACTIVE_COMPARE", "User is not active in the comparison data", Severity.WARNING)
+    NOT_ACTIVE_COMPARE = Finding("NOT_ACTIVE_COMPARE", 'User is "{status}" in the comparison data while source is "{source_status}"', Severity.WARNING)
     
     # Identity related findings
-    NAME_MISMATCH = Finding("NAME_MISMATCH", "User's name does not match between sources (source: {source_name}, compare: {compare_name})", Severity.WARNING)
-    EMAIL_MISMATCH = Finding("EMAIL_MISMATCH", "User's email does not match between sources (source: {source_email}, compare: {compare_email})", Severity.ERROR)
-    DOMAIN_MISMATCH = Finding("DOMAIN_MISMATCH", "User's email domain does not match expected pattern ({domain})", Severity.ERROR)
-    POSSIBLE_DOMAIN_MISMATCH = Finding("POSSIBLE_DOMAIN_MISMATCH", "User's email domain might be incorrect ({domain})", Severity.WARNING)
-    MISSING_EMAIL = Finding("MISSING_EMAIL", "User has no email address", Severity.ERROR)
-    INVALID_EMAIL = Finding("INVALID_EMAIL", "User has an invalid email address: {email}", Severity.ERROR)
-    MISSING_NAME = Finding("MISSING_NAME", "User has no name", Severity.ERROR)
-    INVALID_NAME = Finding("INVALID_NAME", "User has an invalid name: {name}", Severity.ERROR)
+    NAME_MISMATCH = Finding("NAME_MISMATCH", 'Name does not match between sources (source: "{source_name}", compare: "{compare_name}")', Severity.WARNING)
+    EMAIL_MISMATCH = Finding("EMAIL_MISMATCH", 'Email does not match between sources (source: "{source_email}", compare: "{compare_email}")', Severity.ERROR)
+    DOMAIN_MISMATCH = Finding("DOMAIN_MISMATCH", 'Email domain does not match (source "{domain}", compare: "{compare_domain"})', Severity.ERROR)
+    MISSING_EMAIL = Finding("MISSING_EMAIL", "No email address", Severity.ERROR)
+    INVALID_EMAIL = Finding("INVALID_EMAIL", "Invalid email address: {email}", Severity.ERROR)
+    MISSING_NAME = Finding("MISSING_NAME", "No name found", Severity.ERROR)
+    INVALID_NAME = Finding("INVALID_NAME", 'Invalid name: "{name}"', Severity.ERROR)
     
     # Access related findings
     EXTRA_ACCESS = Finding("EXTRA_ACCESS", "User has access in comparison that is not in source of truth ({access})", Severity.WARNING)

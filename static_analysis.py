@@ -28,7 +28,7 @@ class StaticAnalysis:
             
             # Check last login
             if not source.has_logged_in(user):
-                source.add_finding(user['user_id'], FindingType.NOT_ACTIVE_SOURCE)
+                source.add_finding(user['user_id'], FindingType.NEVER_LOGGED_IN)
 
         # Signal success if there are no findings
         return not source.has_findings()

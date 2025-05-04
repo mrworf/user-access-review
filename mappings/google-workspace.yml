@@ -11,6 +11,8 @@ mapping:
   manager: Manager Email
 
 rewrite:
+  manager:
+    invalid@email.com: None
   status:
     active: Active
     inactive: Archived
