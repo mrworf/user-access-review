@@ -5,6 +5,7 @@ import logging
 
 class Severity(Enum):
     """Severity levels for findings"""
+    COMPLIANCE = "compliance"
     ERROR = "error"
     WARNING = "warning"
     NOTICE = "notice"

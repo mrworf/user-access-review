@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import logging
 import os
 import yaml
 import re
-from findings import FindingType, Severity
+from findings import FindingType, Severity, Finding
 
 class DynamicAnalysis:
     def __init__(self, rules_file = None):
@@ -92,3 +93,23 @@ class DynamicAnalysis:
                     if source_domain != compare_domain:
                         compare.add_finding(user_id, FindingType.DOMAIN_MISMATCH, domain=source_domain, compare_domain=compare_domain)
         # Next
+
+    def validate(self, compare):
+        # Get the rules for validating the compare data
+        val_rules = self.rules.get('validation', {}).get('rules', [])
+        for rule in val_rules:
+            # Check if the field is supported
+            if not compare.has_field(rule.get('field')):
+                continue
+            for user_id in compare.users.keys():
+                value = compare.users[user_id].get(rule.get('field'))
+                if value is None and rule.get('skip-empty', False):
+                    continue
+                if isinstance(value, datetime) and not compare.has_date_value(value) and rule.get('skip-empty', False):
+                    continue
+                if rule.get('operation') == 'days_since':
+                    # Calculate the number of days since the value
+                    value = (datetime.now() - value).days
+                if rule.get('trigger') == 'greater_than':
+                    if value > rule.get('value'):
+                        compare.add_finding(user_id, Finding(rule.get('name'), rule.get('reason'), rule.get('severity')), value=value)

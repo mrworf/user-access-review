@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import os
 import csv
 import yaml
@@ -11,7 +12,7 @@ from common_fields import common_fields
 from findings import Finding, Severity
 
 class DataSource:
-    __NEVER_LOGGED_IN = dateutil.parser.parse('1970-01-01T00:00:00Z') # Not the ideal way to handle this, but let's do this for now
+    NEVER_LOGGED_IN = dateutil.parser.parse('1970-01-01T00:00:00Z') # Not the ideal way to handle this, but let's do this for now
 
     def __init__(self):
         self.name = None
@@ -22,7 +23,6 @@ class DataSource:
         # Add some missing timezones
         self.tz['EDT'] = self.tz['EST']
         self.findings = {}  # Single array for all findings, keyed by user_id
-        self.__NEVER_LOGGED_IN = dateutil.parser.parse('1970-01-01T00:00:00Z')
 
     def load(self, csv_file, yaml_file):
         config = self.load_yaml(yaml_file)
@@ -40,7 +40,6 @@ class DataSource:
                 if mgr is not None:
                     self.managers[user['manager']] = mgr
 
-    # TODO: Move this to static analysis
     def conform(self, value, field):
         if field not in common_fields:
             raise ValueError(f'Field "{field}" not found in common fields for field "{field}"')
@@ -49,8 +48,8 @@ class DataSource:
                 raise ValueError(f'Value "{value}" not in allowed values for field "{field}"')
 
         if common_fields[field] == 'date':
-            if value is None:
-                value = ''
+            if value is None or value == '':
+                value = DataSource.NEVER_LOGGED_IN
             try:
                 # Try to parse the date and time, preserving original timezone
                 value = dateutil.parser.parse(value, tzinfos=self.tz)
@@ -227,18 +226,23 @@ class DataSource:
         """
         return len(self.get_findings_by_severity(Severity.NOTICE)) > 0
 
+    def has_date_value(self, value):
+        if not isinstance(value, datetime):
+            return False
+        if value.tzinfo is not None:
+            # If last_login has timezone, copy it to NEVER_LOGGED_IN
+            never_logged_in = DataSource.NEVER_LOGGED_IN.replace(tzinfo=value.tzinfo)
+        else:
+            # If last_login is naive, use naive NEVER_LOGGED_IN
+            never_logged_in = DataSource.NEVER_LOGGED_IN.replace(tzinfo=None)
+        return value != never_logged_in
+
     def has_logged_in(self, user):
         if not self.has_field('last_login'):
             return True # No last login field, so we can't check
-        
-        last_login = user['last_login']
-        if last_login.tzinfo is not None:
-            # If last_login has timezone, copy it to NEVER_LOGGED_IN
-            never_logged_in = self.__NEVER_LOGGED_IN.replace(tzinfo=last_login.tzinfo)
-        else:
-            # If last_login is naive, use naive NEVER_LOGGED_IN
-            never_logged_in = self.__NEVER_LOGGED_IN.replace(tzinfo=None)
-        return last_login != never_logged_in
+        if not self.has_date_value(user['last_login']):
+            return False
+        return True
 
     def has_field(self, field):
         return field in self.mapping

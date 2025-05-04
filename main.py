@@ -43,6 +43,7 @@ def process_source(source: DataSource, analyzer: StaticAnalysis, output_prefix: 
 def process_comparison(source: DataSource, compare: DataSource, analyzer: StaticAnalysis, rules_file: str = None):
     analyzer.validate(compare)
     dynamic = DynamicAnalysis(rules_file)
+    dynamic.validate(compare)
     dynamic.compare(source, compare)
 
 if __name__ == "__main__":

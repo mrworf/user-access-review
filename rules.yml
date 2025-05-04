@@ -12,3 +12,14 @@ comparison:
       field: user_id
       pattern: ^(?![^@]+@company.com$).*$
       reason: Non-company email addresses (\1) are not allowed
+
+validation:
+  rules:
+    - name: NO_LOGIN_IN_90_DAYS
+      reason: Has not logged in for 90 days ({value} days ago)
+      severity: COMPLIANCE
+      field: last_login
+      operation: days_since
+      trigger: greater_than
+      value: 90
+      skip-empty: true
