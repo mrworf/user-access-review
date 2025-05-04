@@ -22,6 +22,7 @@ class DataSource:
         # Add some missing timezones
         self.tz['EDT'] = self.tz['EST']
         self.findings = {}  # Single array for all findings, keyed by user_id
+        self.__NEVER_LOGGED_IN = dateutil.parser.parse('1970-01-01T00:00:00Z')
 
     def load(self, csv_file, yaml_file):
         config = self.load_yaml(yaml_file)
@@ -51,10 +52,8 @@ class DataSource:
             if value is None:
                 value = ''
             try:
-                # Try to parse the date and time
+                # Try to parse the date and time, preserving original timezone
                 value = dateutil.parser.parse(value, tzinfos=self.tz)
-                if value.tzinfo is None:
-                    value = value.replace(tzinfo=pytz.UTC)
             except ValueError:
                 raise ValueError(f'Value "{value}" is not a valid date for field "{field}"')
         elif common_fields[field] == 'name':
@@ -80,6 +79,16 @@ class DataSource:
         try:
             with open(file_path, mode='r') as file:
                 csv_reader = csv.DictReader(file)
+
+                # Check if any fields are regex fields, if so, replace with the matching field.
+                # Note tha this will use the first field that matches.
+                for k, v in self.mapping.items():
+                    # Loop through all fields in the row
+                    for field in csv_reader.fieldnames:
+                        if regex.match(v, field):
+                            self.mapping[k] = field
+                            break
+
                 data = {}
                 for row in csv_reader:
                     line = {}
@@ -124,12 +133,39 @@ class DataSource:
 
         if not file_path or not os.path.exists(file_path):
             raise ValueError(f'File "{file_path}" does not exist')
+        data = {}
         try:
             with open(file_path, 'r') as file:
                 data = yaml.safe_load(file)
-            return data
         except Exception as e:
             raise ValueError(f'Error loading YAML file "{file_path}": {e}')
+        
+        # Check if this depends on another mapping file
+        if 'inherit' in data:
+            base = self.load_yaml(os.path.join(os.path.dirname(file_path), data['inherit']))
+            # Remove inherit key before merging
+            del data['inherit']
+            # Deep merge base and data
+            data = self._deep_merge(base, data)
+        return data
+
+    def _deep_merge(self, base, override):
+        """Deep merge two dictionaries, with override taking precedence
+        
+        Args:
+            base: Base dictionary
+            override: Dictionary with overrides
+            
+        Returns:
+            Merged dictionary
+        """
+        result = base.copy()
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
     
     def add_finding(self, user_id: str, finding: Finding, **kwargs):
         """Add a finding (error, warning, or notice) for a user
@@ -192,7 +228,17 @@ class DataSource:
         return len(self.get_findings_by_severity(Severity.NOTICE)) > 0
 
     def has_logged_in(self, user):
-        return user['last_login'] != self.__NEVER_LOGGED_IN 
+        if not self.has_field('last_login'):
+            return True # No last login field, so we can't check
+        
+        last_login = user['last_login']
+        if last_login.tzinfo is not None:
+            # If last_login has timezone, copy it to NEVER_LOGGED_IN
+            never_logged_in = self.__NEVER_LOGGED_IN.replace(tzinfo=last_login.tzinfo)
+        else:
+            # If last_login is naive, use naive NEVER_LOGGED_IN
+            never_logged_in = self.__NEVER_LOGGED_IN.replace(tzinfo=None)
+        return last_login != never_logged_in
 
     def has_field(self, field):
         return field in self.mapping
