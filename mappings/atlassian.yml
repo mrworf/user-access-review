@@ -4,6 +4,7 @@ mapping:
   first_name: User name
   last_name: User name
   status: User status
+  created_date: Added to org
 
 rewrite:
   first_name:

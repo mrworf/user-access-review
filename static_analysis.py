@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from datetime import datetime
+
+import regex
 from findings import FindingType
 
 class StaticAnalysis:
@@ -17,8 +20,27 @@ class StaticAnalysis:
         """
         # Check each user
         for user in source.users.values():
+            # Check email format
+            if source.has_field('email'):
+                if user['email'] == None or user['email'] == '':
+                    source.add_finding(user['user_id'], FindingType.MISSING_EMAIL)
+                elif not regex.match(r'[^@]+@[^@]+\.[^@]+', user['email']):
+                    source.add_finding(user['user_id'], FindingType.INVALID_EMAIL, email=user['email'])
+
+            # Check name
+            if source.has_field('first_name'):
+                if user['first_name'] == None or user['first_name'] == '':
+                    source.add_finding(user['user_id'], FindingType.MISSING_FIRST_NAME)
+                elif not regex.match(r'^\p{L}[\p{L}\s\-\.\,\'\(\)0-9]*$', user['first_name']):
+                    source.add_finding(user['user_id'], FindingType.INVALID_FIRST_NAME, name=user['first_name'])
+            if source.has_field('last_name'):
+                if user['last_name'] == None or user['last_name'] == '':
+                    source.add_finding(user['user_id'], FindingType.MISSING_LAST_NAME)
+                elif not regex.match(r'^\p{L}[\p{L}\s\-\.\,\'\(\)0-9]*$', user['last_name']):
+                    source.add_finding(user['user_id'], FindingType.INVALID_LAST_NAME, name=user['last_name'])
+
             # Check manager
-            if user['manager'] != None: # Manager is supported by the source
+            if source.has_field('manager'):
                 if user['manager'] == '':
                     source.add_finding(user['user_id'], FindingType.MISSING_MANAGER)
                 elif user['manager'] not in source.users:
@@ -28,7 +50,10 @@ class StaticAnalysis:
             
             # Check last login
             if not source.has_logged_in(user):
-                source.add_finding(user['user_id'], FindingType.NEVER_LOGGED_IN)
-
+                if source.has_field('created_date'):
+                    age = (datetime.now() - user['created_date']).days
+                    source.add_finding(user['user_id'], FindingType.NEVER_LOGGED_IN_AGED, age=age)
+                else:
+                    source.add_finding(user['user_id'], FindingType.NEVER_LOGGED_IN)
         # Signal success if there are no findings
         return not source.has_findings()

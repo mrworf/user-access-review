@@ -36,7 +36,7 @@ class DynamicAnalysis:
         return data
 
     def field_supported(self, source, compare, field):
-        return field in source.mapping and field in compare.mapping
+        return source.has_field(field) and compare.has_field(field)
 
     def fields_differ(self, source, compare, user_id, field):
         if not self.field_supported(source, compare, field):
@@ -90,5 +90,5 @@ class DynamicAnalysis:
                     source_domain = source.users[user_id].get('email').split('@')[1]
                     compare_domain = compare.users[user_id].get('email').split('@')[1]
                     if source_domain != compare_domain:
-                        compare.add_finding(user_id, FindingType.DOMAIN_MISMATCH, source_domain=source_domain, compare_domain=compare_domain)
+                        compare.add_finding(user_id, FindingType.DOMAIN_MISMATCH, domain=source_domain, compare_domain=compare_domain)
         # Next

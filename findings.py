@@ -79,6 +79,7 @@ class FindingType:
     NOT_IN_SOURCE = Finding("NOT_IN_SOURCE", "User not found in source of truth", Severity.ERROR)
     NOT_ACTIVE_SOURCE = Finding("NOT_ACTIVE_SOURCE", 'User is "{status}" in source of truth while comparison is "{compare_status}"', Severity.WARNING)
     NEVER_LOGGED_IN = Finding("NEVER_LOGGED_IN", "User has never logged in", Severity.WARNING)
+    NEVER_LOGGED_IN_AGED = Finding("NEVER_LOGGED_IN_AGED", "User has never logged in and is {age} days old", Severity.WARNING)
     
     # Comparison related findings
     NOT_IN_COMPARE = Finding("NOT_IN_COMPARE", "User does not exist in the comparison data", Severity.ERROR)
@@ -90,8 +91,10 @@ class FindingType:
     DOMAIN_MISMATCH = Finding("DOMAIN_MISMATCH", 'Email domain does not match (source "{domain}", compare: "{compare_domain"})', Severity.ERROR)
     MISSING_EMAIL = Finding("MISSING_EMAIL", "No email address", Severity.ERROR)
     INVALID_EMAIL = Finding("INVALID_EMAIL", "Invalid email address: {email}", Severity.ERROR)
-    MISSING_NAME = Finding("MISSING_NAME", "No name found", Severity.ERROR)
-    INVALID_NAME = Finding("INVALID_NAME", 'Invalid name: "{name}"', Severity.ERROR)
+    MISSING_FIRST_NAME = Finding("MISSING_FIRST_NAME", "No first name found", Severity.ERROR)
+    INVALID_FIRST_NAME = Finding("INVALID_FIRST_NAME", 'Invalid first name: "{name}"', Severity.ERROR)
+    MISSING_LAST_NAME = Finding("MISSING_LAST_NAME", "No last name found", Severity.ERROR)
+    INVALID_LAST_NAME = Finding("INVALID_LAST_NAME", 'Invalid last name: "{name}"', Severity.ERROR)
     
     # Access related findings
     EXTRA_ACCESS = Finding("EXTRA_ACCESS", "User has access in comparison that is not in source of truth ({access})", Severity.WARNING)

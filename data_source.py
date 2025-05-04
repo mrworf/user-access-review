@@ -57,6 +57,9 @@ class DataSource:
                     value = value.replace(tzinfo=pytz.UTC)
             except ValueError:
                 raise ValueError(f'Value "{value}" is not a valid date for field "{field}"')
+        elif common_fields[field] == 'name':
+            if value is not None:
+                value = value.casefold()
         elif common_fields[field] == 'bool':
             if value is None:
                 value = ''
@@ -72,53 +75,6 @@ class DataSource:
             if value is None:
                 value = ''
         return value
-
-    '''
-    def conform(self, value, field):
-        if field not in common_fields:
-            raise ValueError(f'Field "{field}" not found in common fields for field "{field}"')
-        if isinstance(common_fields[field], list):
-            if value not in common_fields[field]:
-                raise ValueError(f'Value "{value}" not in allowed values for field "{field}"')
-        elif common_fields[field] == 'email':
-            if value is None:
-                value = ''
-            value = value.lower().strip()
-            if not regex.match(r'[^@]+@[^@]+\.[^@]+', value) and value != '':
-                raise ValueError(f'Value "{value}" is not a valid email address for field "{field}"')
-        elif common_fields[field] == 'name':
-            if value is None:
-                value = ''
-            if not regex.match(r'^\p{L}[\p{L}\s\-\.\,\'\(\)0-9]*$', value) and value != '':
-                raise ValueError(f'Value "{value}" is not a valid name for field "{field}"')
-            else:
-                value = value.casefold()
-        elif common_fields[field] == 'date':
-            if value is None:
-                value = ''
-            try:
-                # Try to parse the date and time
-                value = dateutil.parser.parse(value, tzinfos=self.tz)
-                if value.tzinfo is None:
-                    value = value.replace(tzinfo=pytz.UTC)
-            except ValueError:
-                raise ValueError(f'Value "{value}" is not a valid date for field "{field}"')
-        elif common_fields[field] == 'str':
-            if value is None:
-                value = ''
-        elif common_fields[field] == 'bool':
-            if value is None:
-                value = ''
-            if value.lower() in ['true', 'false']:
-                value = value.lower() == 'true'
-            elif value.lower() in ['yes', 'no']:
-                value = value.lower() == 'yes'
-            elif value.lower() in ['1', '0']:
-                value = value.lower() == '1'
-            else:
-                raise ValueError(f'Value "{value}" is not a valid boolean for field "{field}"')
-        return value
-    '''
 
     def load_csv(self, file_path):
         try:
@@ -237,6 +193,9 @@ class DataSource:
 
     def has_logged_in(self, user):
         return user['last_login'] != self.__NEVER_LOGGED_IN 
+
+    def has_field(self, field):
+        return field in self.mapping
 
     def save(self, file_path):
         with open(file_path, 'w') as file:
