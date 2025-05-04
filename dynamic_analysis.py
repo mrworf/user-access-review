@@ -5,7 +5,8 @@ import logging
 import os
 import yaml
 import re
-from findings import FindingType, Severity, Finding
+from validation_helper import ValidationHelper
+from findings import FindingType, Finding
 
 class DynamicAnalysis:
     def __init__(self, rules_file = None):
@@ -39,6 +40,12 @@ class DynamicAnalysis:
     def field_supported(self, source, compare, field):
         return source.has_field(field) and compare.has_field(field)
 
+    def field_only_in_compare(self, source, compare, field):
+        return not source.has_field(field) and compare.has_field(field)
+
+    def field_only_in_source(self, source, compare, field):
+        return source.has_field(field) and not compare.has_field(field)
+
     def fields_differ(self, source, compare, user_id, field):
         if not self.field_supported(source, compare, field):
             # Field is not mapped, so we can't compare it
@@ -71,6 +78,7 @@ class DynamicAnalysis:
                         compare.add_finding(user_id, FindingType.DOCUMENTED_EXCEPTION, reason=reason)
                         break
                 else:
+                    # This means we won't check anything else. That could be a problem.
                     compare.add_finding(user_id, FindingType.NOT_IN_SOURCE)
             else: # User exists in source
                 # Check if the user status has discrepancies
@@ -81,17 +89,38 @@ class DynamicAnalysis:
                     elif compare.users[user_id].get('status') == 'active':
                         compare.add_finding(user_id, FindingType.NOT_ACTIVE_SOURCE, status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
                 if self.fields_differ(source, compare, user_id, 'first_name'):
-                    compare.add_finding(user_id, FindingType.NAME_MISMATCH, source_name=source.users[user_id].get('first_name'), compare_name=compare.users[user_id].get('first_name'))
+                    compare.add_finding(user_id, FindingType.FIRST_NAME_MISMATCH, source_name=source.users[user_id].get('first_name'), compare_name=compare.users[user_id].get('first_name'))
+                elif self.field_only_in_compare(source, compare, 'first_name'):
+                    if compare.users[user_id].get('first_name') == '':
+                        compare.add_finding(user_id, FindingType.MISSING_FIRST_NAME)
+                    elif not ValidationHelper.is_valid_name(compare.users[user_id].get('first_name')):
+                        compare.add_finding(user_id, FindingType.INVALID_FIRST_NAME, name=compare.users[user_id].get('first_name'))
                 if self.fields_differ(source, compare, user_id, 'last_name'):
-                    compare.add_finding(user_id, FindingType.NAME_MISMATCH, source_name=source.users[user_id].get('last_name'), compare_name=compare.users[user_id].get('last_name'))
+                    compare.add_finding(user_id, FindingType.LAST_NAME_MISMATCH, source_name=source.users[user_id].get('last_name'), compare_name=compare.users[user_id].get('last_name'))
+                elif self.field_only_in_compare(source, compare, 'last_name'):
+                    if compare.users[user_id].get('last_name') == '':
+                        compare.add_finding(user_id, FindingType.MISSING_LAST_NAME)
+                    elif not ValidationHelper.is_valid_name(compare.users[user_id].get('last_name')):
+                        compare.add_finding(user_id, FindingType.INVALID_LAST_NAME, name=compare.users[user_id].get('last_name'))
                 if self.fields_differ(source, compare, user_id, 'email'):
                     compare.add_finding(user_id, FindingType.EMAIL_MISMATCH, source_email=source.users[user_id].get('email'), compare_email=compare.users[user_id].get('email'))
+                elif self.field_only_in_compare(source, compare, 'email'):
+                    if compare.users[user_id].get('email') == '':
+                        compare.add_finding(user_id, FindingType.MISSING_EMAIL)
+                    elif not ValidationHelper.is_valid_email(compare.users[user_id].get('email')):
+                        compare.add_finding(user_id, FindingType.INVALID_EMAIL, email=compare.users[user_id].get('email'))
                 if self.field_supported(source, compare, 'email'):
                     # Compare the email domain
                     source_domain = source.users[user_id].get('email').split('@')[1]
                     compare_domain = compare.users[user_id].get('email').split('@')[1]
                     if source_domain != compare_domain:
                         compare.add_finding(user_id, FindingType.DOMAIN_MISMATCH, domain=source_domain, compare_domain=compare_domain)
+                if self.fields_differ(source, compare, user_id, 'department'):
+                    compare.add_finding(user_id, FindingType.DEPT_MISMATCH, source_dept=source.users[user_id].get('department'), compare_dept=compare.users[user_id].get('department'))
+                if self.fields_differ(source, compare, user_id, 'location'):
+                    compare.add_finding(user_id, FindingType.LOCATION_MISMATCH, source_location=source.users[user_id].get('location'), compare_location=compare.users[user_id].get('location'))
+                if self.fields_differ(source, compare, user_id, 'title'):
+                    compare.add_finding(user_id, FindingType.TITLE_MISMATCH, source_title=source.users[user_id].get('title'), compare_title=compare.users[user_id].get('title'))
         # Next
 
     def validate(self, compare):
@@ -105,7 +134,7 @@ class DynamicAnalysis:
                 value = compare.users[user_id].get(rule.get('field'))
                 if value is None and rule.get('skip-empty', False):
                     continue
-                if isinstance(value, datetime) and not compare.has_date_value(value) and rule.get('skip-empty', False):
+                if isinstance(value, datetime) and not ValidationHelper.has_date_value(value) and rule.get('skip-empty', False):
                     continue
                 if rule.get('operation') == 'days_since':
                     # Calculate the number of days since the value

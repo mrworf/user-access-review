@@ -55,5 +55,11 @@ class StaticAnalysis:
                     source.add_finding(user['user_id'], FindingType.NEVER_LOGGED_IN_AGED, age=age)
                 else:
                     source.add_finding(user['user_id'], FindingType.NEVER_LOGGED_IN)
+
+            # Check privileged
+            if source.has_field('privileged'):
+                if user['privileged']:
+                    source.add_finding(user['user_id'], FindingType.IS_PRIVILEGED)
+
         # Signal success if there are no findings
         return not source.has_findings()

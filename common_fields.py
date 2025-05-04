@@ -24,4 +24,5 @@ common_fields = {
     'type': ['employee', 'contractor', 'intern', 'vendor', 'unknown'],
     'two_factor': 'bool',
     'user_type': ['fte', 'part-time', 'contractor', 'vendor', 'intern', 'service', 'unknown'],
+    'privileged': 'bool'
 } 

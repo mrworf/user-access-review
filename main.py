@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
+import logging
 import os
 import json
+
+from receipt import Receipt
 """
 User Access Review Tool
 
@@ -49,22 +52,28 @@ def process_comparison(source: DataSource, compare: DataSource, analyzer: Static
 if __name__ == "__main__":
     args = parse_arguments()
     analyzer = StaticAnalysis()
+    receipt = Receipt()
 
     # Load configuration from file
     config = Config.from_file(args.config)
+    receipt.audit_file(args.config, "Configuration file")
     
     # Process source of truth
     source = DataSource()
     source.load(config.truth_source, config.truth_map)
+    receipt.audit_file(config.truth_source, "Source of truth")
+    receipt.audit_file(config.truth_map, "Source of truth field mapping")
     process_source(source, analyzer, config.output_prefix)
     source.save(f'{config.output_prefix}_baseline.csv')
-
+    receipt.audit_file(f'{config.output_prefix}_baseline.csv', "Source of truth baseline")
     master_report = [source]
 
     # Process comparisons if any
     for comp in config.comparisons:
         compare = DataSource()
         compare.load(comp.source, comp.map_file)
+        receipt.audit_file(comp.source, "Comparison source")
+        receipt.audit_file(comp.map_file, "Comparison field mapping")
         rules = comp.rules or config.rules
         process_comparison(source, compare, analyzer, rules)
         compare.save(f'{config.output_prefix}_{comp.safe_name}_baseline.csv')
@@ -75,3 +84,14 @@ if __name__ == "__main__":
     report = Report()
     report.generate(master_report)
     report.save(f'{config.output_prefix}_findings.csv')
+    receipt.audit_file(f'{config.output_prefix}_findings.csv', "Findings report")
+
+    # Save the receipt
+    receipt_filename = f'{config.output_prefix}_receipt.txt'
+    try:
+        receipt_hash = receipt.save(receipt_filename)
+        print(f'Receipt saved to {receipt_filename}')
+        print(f'Receipt SHA256: {receipt_hash}')
+    except Exception as e:
+        logging.error(f'Error saving receipt: {e}')
+        raise

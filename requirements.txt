@@ -1,3 +1,5 @@
 python-dateutil
 PyYAML
+regex
+gitpython
 

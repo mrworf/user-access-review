@@ -36,6 +36,7 @@ class Report:
                         'finding': 'CLEAN',
                         'message': 'No issues found'
                     })
+
     def save(self, filename):
         """Save the report to a CSV file
         

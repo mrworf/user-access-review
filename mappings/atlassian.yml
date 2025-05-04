@@ -5,6 +5,7 @@ mapping:
   last_name: User name
   status: User status
   created_date: Added to org
+  privileged: Group membership
 
 rewrite:
   first_name:
@@ -17,3 +18,6 @@ rewrite:
     suspended: Suspended
   last_login:
     1/1/1970: Never accessed
+  privileged:
+    true: .*admin.*
+    false: ^(?!.*admin).*$
