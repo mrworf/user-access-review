@@ -9,7 +9,7 @@ from .validation_helper import ValidationHelper
 from models.findings import FindingType, Finding
 
 class DynamicAnalysis:
-    def __init__(self, rules_file = None):
+    def __init__(self, config, rules_file = None):
         self.rules = self.load_yaml(rules_file) if rules_file else {}  
         self.findings = {}
 

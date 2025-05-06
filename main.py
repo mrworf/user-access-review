@@ -45,7 +45,7 @@ def process_source(source: DataSource, analyzer: StaticAnalysis, output_prefix: 
 
 def process_comparison(source: DataSource, compare: DataSource, analyzer: StaticAnalysis, rules_file: str = None):
     analyzer.validate(compare)
-    dynamic = DynamicAnalysis(rules_file)
+    dynamic = DynamicAnalysis(config, rules_file)
     dynamic.validate(compare)
     dynamic.compare(source, compare)
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     receipt.audit_file(args.config, "Configuration file")
     
     # Process source of truth
-    source = DataSource()
+    source = DataSource(config)
     source.load(config.truth_source, config.truth_map)
     receipt.audit_file(config.truth_source, "Source of truth")
     receipt.audit_file(config.truth_map, "Source of truth field mapping")
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     # Process comparisons if any
     for comp in config.comparisons:
-        compare = DataSource()
+        compare = DataSource(config)
         compare.load(comp.source, comp.map_file)
         receipt.audit_file(comp.source, "Comparison source")
         receipt.audit_file(comp.map_file, "Comparison field mapping")

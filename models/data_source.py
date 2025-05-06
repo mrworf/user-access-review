@@ -13,7 +13,7 @@ from .findings import Finding, Severity
 from analysis.validation_helper import ValidationHelper
 
 class DataSource:
-    def __init__(self):
+    def __init__(self, config):
         self.name = None
         self.users = {}
         self.mapping = None
@@ -22,6 +22,8 @@ class DataSource:
         # Add some missing timezones
         self.tz['EDT'] = self.tz['EST']
         self.findings = {}  # Single array for all findings, keyed by user_id
+
+        self.config = config
 
     def load(self, csv_file, yaml_file):
         config = self.load_yaml(yaml_file)
@@ -172,6 +174,9 @@ class DataSource:
             finding: The Finding object
             **kwargs: Parameters to format into the finding description
         """
+        if finding.key in self.config.disable:
+            return
+        
         if user_id not in self.findings:
             self.findings[user_id] = []
         self.findings[user_id].append(finding(**kwargs))

@@ -31,7 +31,7 @@ class Config:
     rules: Optional[str]
     comparisons: List[CompareConfig]
     domains: List[str]
-
+    disable: List[str]
     def __post_init__(self):
         if not self.truth_name:
             # Extract filename without path or extension
@@ -95,5 +95,6 @@ class Config:
             output_prefix=config_data.get('output', 'output'),
             rules=config_data.get('rules'),
             comparisons=comparisons,
-            domains=config_data.get('domains', [])
+            domains=config_data.get('domains', []),
+            disable=config_data.get('disable', []) if config_data.get('disable') else []
         )
