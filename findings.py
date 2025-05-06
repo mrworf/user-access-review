@@ -71,59 +71,59 @@ class Finding:
 class FindingType:
     """Finding types and their descriptions for user access review"""
     
-    # Manager related findings
-    MISSING_MANAGER = Finding("MISSING_MANAGER", "No manager", Severity.WARNING)
-    INVALID_MANAGER = Finding("INVALID_MANAGER", 'Manager "{manager}" not found in user list', Severity.ERROR)
-    INACTIVE_MANAGER = Finding("INACTIVE_MANAGER", 'Manager "{manager}" is not active, but user is', Severity.ERROR)
-    
-    # Source of truth related findings
-    NOT_IN_SOURCE = Finding("NOT_IN_SOURCE", "Not found in source of truth", Severity.ERROR)
-    NOT_IN_SOURCE_ACTIVE = Finding("NOT_IN_SOURCE_ACTIVE", "Not found in source of truth and is active", Severity.ERROR)
-    NOT_IN_SOURCE_INACTIVE = Finding("NOT_IN_SOURCE_INACTIVE", "Not found in source of truth and is inactive", Severity.ERROR)
-    NOT_IN_SOURCE_SUSPENDED = Finding("NOT_IN_SOURCE_SUSPENDED", "Not found in source of truth and is suspended", Severity.ERROR)
-    NOT_IN_SOURCE_DELETED = Finding("NOT_IN_SOURCE_DELETED", "Not found in source of truth and is deleted", Severity.ERROR)
-    NOT_IN_SOURCE_UNKNOWN = Finding("NOT_IN_SOURCE_UNKNOWN", "Not found in source of truth and status is unknown", Severity.ERROR)
-
-    NOT_ACTIVE_SOURCE = Finding("NOT_ACTIVE_SOURCE", 'Status does not match between sources (source: "{source_status}", compare: "{compare_status}")', Severity.WARNING)
-    NEVER_LOGGED_IN = Finding("NEVER_LOGGED_IN", "Never logged in", Severity.WARNING)
-    NEVER_LOGGED_IN_AGED = Finding("NEVER_LOGGED_IN_AGED", "User has never logged in and is {age} days old", Severity.WARNING)
-    
-    # Comparison related findings
-    NOT_IN_COMPARE = Finding("NOT_IN_COMPARE", "Does not exist in the comparison data", Severity.ERROR)
-    NOT_ACTIVE_COMPARE = Finding("NOT_ACTIVE_COMPARE", 'Status does not match between sources (source: "{source_status}", compare: "{compare_status}")', Severity.WARNING)
-    
-    # Identity related findings
-    FIRST_NAME_MISMATCH = Finding("FIRST_NAME_MISMATCH", 'First name does not match between sources (source: "{source_name}", compare: "{compare_name}")', Severity.WARNING)
-    LAST_NAME_MISMATCH = Finding("LAST_NAME_MISMATCH", 'Last name does not match between sources (source: "{source_name}", compare: "{compare_name}")', Severity.WARNING)
-    EMAIL_MISMATCH = Finding("EMAIL_MISMATCH", 'Email does not match between sources (source: "{source_email}", compare: "{compare_email}")', Severity.ERROR)
-    DOMAIN_MISMATCH = Finding("DOMAIN_MISMATCH", 'Email domain does not match (source "{domain}", compare: "{compare_domain}")', Severity.ERROR)
-    INVALID_EMAIL_DOMAIN = Finding("INVALID_EMAIL_DOMAIN", 'Email domain is not approved (domain: "{domain}")', Severity.ERROR)
-    MISSING_EMAIL = Finding("MISSING_EMAIL", "No email address", Severity.ERROR)
-    INVALID_EMAIL = Finding("INVALID_EMAIL", "Invalid email address: {email}", Severity.ERROR)
-    MISSING_FIRST_NAME = Finding("MISSING_FIRST_NAME", "No first name found", Severity.ERROR)
-    INVALID_FIRST_NAME = Finding("INVALID_FIRST_NAME", 'Invalid first name: "{name}"', Severity.ERROR)
-    MISSING_LAST_NAME = Finding("MISSING_LAST_NAME", "No last name found", Severity.ERROR)
-    INVALID_LAST_NAME = Finding("INVALID_LAST_NAME", 'Invalid last name: "{name}"', Severity.ERROR)
-    
     # Access related findings
-    EXTRA_ACCESS = Finding("EXTRA_ACCESS", "Has access in comparison that is not in source of truth ({access})", Severity.WARNING)
-    MISSING_ACCESS = Finding("MISSING_ACCESS", "No access", Severity.ERROR)
-    INVALID_ACCESS = Finding("INVALID_ACCESS", "Invalid access: {access}", Severity.ERROR)
-    IS_PRIVILEGED = Finding("IS_PRIVILEGED", "Privileged access", Severity.COMPLIANCE)
+    ACCESS_EXTRA = Finding("ACCESS_EXTRA", "Has access in comparison that is not in source of truth ({access})", Severity.WARNING)
+    ACCESS_INVALID = Finding("ACCESS_INVALID", "Invalid access: {access}", Severity.ERROR)
+    ACCESS_MISSING = Finding("ACCESS_MISSING", "No access", Severity.ERROR)
+    ACCESS_PRIVILEGED = Finding("ACCESS_PRIVILEGED", "Privileged access", Severity.COMPLIANCE)
 
-    # Title related findings
-    TITLE_MISMATCH = Finding("TITLE_MISMATCH", "Title does not match between sources (source: {source_title}, compare: {compare_title})", Severity.WARNING)
-    INVALID_TITLE = Finding("INVALID_TITLE", "Invalid title: {title}", Severity.WARNING)
-    MISSING_TITLE = Finding("MISSING_TITLE", "No title", Severity.WARNING)
-    
     # Department related findings
+    DEPT_INVALID = Finding("DEPT_INVALID", "Invalid or unexpected department ({department})", Severity.ERROR)
     DEPT_MISMATCH = Finding("DEPT_MISMATCH", "Department does not match between sources (source: {source_dept}, compare: {compare_dept})", Severity.WARNING)
-    INVALID_DEPT = Finding("INVALID_DEPT", "Invalid or unexpected department ({department})", Severity.ERROR)
-    MISSING_DEPARTMENT = Finding("MISSING_DEPARTMENT", "Missing department", Severity.ERROR)
-    
+    DEPT_MISSING = Finding("DEPT_MISSING", "Missing department", Severity.ERROR)
+
+    # Email related findings
+    DOMAIN_INVALID = Finding("DOMAIN_INVALID", 'Email domain is not approved (domain: "{domain}")', Severity.ERROR)
+    DOMAIN_MISMATCH = Finding("DOMAIN_MISMATCH", 'Email domain does not match (source "{domain}", compare: "{compare_domain}")', Severity.ERROR)
+    EMAIL_INVALID = Finding("EMAIL_INVALID", "Invalid email address: {email}", Severity.ERROR)
+    EMAIL_MISMATCH = Finding("EMAIL_MISMATCH", 'Email does not match between sources (source: "{source_email}", compare: "{compare_email}")', Severity.ERROR)
+    EMAIL_MISSING = Finding("EMAIL_MISSING", "No email address", Severity.ERROR)
+
     # Exception related findings
     DOCUMENTED_EXCEPTION = Finding("DOCUMENTED_EXCEPTION", "{reason}", Severity.NOTICE)
-    
+
+    # Login related findings
+    LOGIN_NEVER = Finding("LOGIN_NEVER", "Never logged in", Severity.WARNING)
+    LOGIN_NEVER_AGED = Finding("LOGIN_NEVER_AGED", "User has never logged in and is {age} days old", Severity.WARNING)
+
+    # Manager related findings
+    MANAGER_INACTIVE = Finding("MANAGER_INACTIVE", 'Manager "{manager}" is not active, but user is', Severity.ERROR)
+    MANAGER_INVALID = Finding("MANAGER_INVALID", 'Manager "{manager}" not found in user list', Severity.ERROR)
+    MANAGER_MISSING = Finding("MANAGER_MISSING", "No manager", Severity.WARNING)
+
+    # Name related findings
+    FIRST_NAME_INVALID = Finding("FIRST_NAME_INVALID", 'Invalid first name: "{name}"', Severity.ERROR)
+    FIRST_NAME_MISMATCH = Finding("FIRST_NAME_MISMATCH", 'First name does not match between sources (source: "{source_name}", compare: "{compare_name}")', Severity.WARNING)
+    FIRST_NAME_MISSING = Finding("FIRST_NAME_MISSING", "No first name found", Severity.ERROR)
+    LAST_NAME_INVALID = Finding("LAST_NAME_INVALID", 'Invalid last name: "{name}"', Severity.ERROR)
+    LAST_NAME_MISMATCH = Finding("LAST_NAME_MISMATCH", 'Last name does not match between sources (source: "{source_name}", compare: "{compare_name}")', Severity.WARNING)
+    LAST_NAME_MISSING = Finding("LAST_NAME_MISSING", "No last name found", Severity.ERROR)
+
+    # Source of truth related findings
+    COMPARE_MISSING = Finding("COMPARE_MISSING", "Does not exist in the comparison data", Severity.ERROR)
+    SOURCE_MISSING = Finding("SOURCE_MISSING", "Not found in source of truth", Severity.ERROR)
+    SOURCE_MISSING_ACTIVE = Finding("SOURCE_MISSING_ACTIVE", "Not found in source of truth and is active", Severity.ERROR)
+    SOURCE_MISSING_DELETED = Finding("SOURCE_MISSING_DELETED", "Not found in source of truth and is deleted", Severity.ERROR)
+    SOURCE_MISSING_INACTIVE = Finding("SOURCE_MISSING_INACTIVE", "Not found in source of truth and is inactive", Severity.ERROR)
+    SOURCE_MISSING_SUSPENDED = Finding("SOURCE_MISSING_SUSPENDED", "Not found in source of truth and is suspended", Severity.ERROR)
+    SOURCE_MISSING_UNKNOWN = Finding("SOURCE_MISSING_UNKNOWN", "Not found in source of truth and status is unknown", Severity.ERROR)
+    STATUS_MISMATCH = Finding("STATUS_MISMATCH", 'Status does not match between sources (source: "{source_status}", compare: "{compare_status}")', Severity.ERROR)
+
+    # Title related findings
+    TITLE_INVALID = Finding("TITLE_INVALID", "Invalid title: {title}", Severity.WARNING)
+    TITLE_MISMATCH = Finding("TITLE_MISMATCH", "Title does not match between sources (source: {source_title}, compare: {compare_title})", Severity.WARNING)
+    TITLE_MISSING = Finding("TITLE_MISSING", "No title", Severity.WARNING)
+
     @classmethod
     def get_all_codes(cls) -> list:
         """Get all finding codes

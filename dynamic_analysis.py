@@ -55,7 +55,6 @@ class DynamicAnalysis:
 
     def compare(self, source, compare):
         # Get the rules for comparing the source and compare data
-        comp_rules = self.rules.get('comparison', {}).get('rules', [])
         comp_exceptions = self.rules.get('comparison', {}).get('exceptions', [])
 
         # First, find all users in the compare that are not in the source
@@ -80,46 +79,43 @@ class DynamicAnalysis:
                 else:
                     # This means we won't check anything else. That could be a problem.
                     if compare.users[user_id].get('status') == 'active':
-                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_ACTIVE)
+                        compare.add_finding(user_id, FindingType.SOURCE_MISSING_ACTIVE)
                     elif compare.users[user_id].get('status') == 'inactive':
-                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_INACTIVE)
+                        compare.add_finding(user_id, FindingType.SOURCE_MISSING_INACTIVE)
                     elif compare.users[user_id].get('status') == 'suspended':
-                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_SUSPENDED)
+                        compare.add_finding(user_id, FindingType.SOURCE_MISSING_SUSPENDED)
                     elif compare.users[user_id].get('status') == 'deleted':
-                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_DELETED)
+                        compare.add_finding(user_id, FindingType.SOURCE_MISSING_DELETED)
                     elif compare.users[user_id].get('status') == 'unknown':
-                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_UNKNOWN)
+                        compare.add_finding(user_id, FindingType.SOURCE_MISSING_UNKNOWN)
                     else:
-                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE)
+                        compare.add_finding(user_id, FindingType.SOURCE_MISSING)
             else: # User exists in source
                 # Check if the user status has discrepancies
                 if self.fields_differ(source, compare, user_id, 'status'):
                     # Discrepancy, document it
-                    if source.users[user_id].get('status') == 'active':
-                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_COMPARE, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
-                    elif compare.users[user_id].get('status') == 'active':
-                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_SOURCE, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
+                    compare.add_finding(user_id, FindingType.STATUS_MISMATCH, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
                 if self.fields_differ(source, compare, user_id, 'first_name'):
                     compare.add_finding(user_id, FindingType.FIRST_NAME_MISMATCH, source_name=source.users[user_id].get('first_name'), compare_name=compare.users[user_id].get('first_name'))
                 elif self.field_only_in_compare(source, compare, 'first_name'):
                     if compare.users[user_id].get('first_name') == '':
-                        compare.add_finding(user_id, FindingType.MISSING_FIRST_NAME)
+                        compare.add_finding(user_id, FindingType.FIRST_NAME_MISSING)
                     elif not ValidationHelper.is_valid_name(compare.users[user_id].get('first_name')):
-                        compare.add_finding(user_id, FindingType.INVALID_FIRST_NAME, name=compare.users[user_id].get('first_name'))
+                        compare.add_finding(user_id, FindingType.FIRST_NAME_INVALID, name=compare.users[user_id].get('first_name'))
                 if self.fields_differ(source, compare, user_id, 'last_name'):
                     compare.add_finding(user_id, FindingType.LAST_NAME_MISMATCH, source_name=source.users[user_id].get('last_name'), compare_name=compare.users[user_id].get('last_name'))
                 elif self.field_only_in_compare(source, compare, 'last_name'):
                     if compare.users[user_id].get('last_name') == '':
-                        compare.add_finding(user_id, FindingType.MISSING_LAST_NAME)
+                        compare.add_finding(user_id, FindingType.LAST_NAME_MISSING)
                     elif not ValidationHelper.is_valid_name(compare.users[user_id].get('last_name')):
-                        compare.add_finding(user_id, FindingType.INVALID_LAST_NAME, name=compare.users[user_id].get('last_name'))
+                        compare.add_finding(user_id, FindingType.LAST_NAME_INVALID, name=compare.users[user_id].get('last_name'))
                 if self.fields_differ(source, compare, user_id, 'email'):
                     compare.add_finding(user_id, FindingType.EMAIL_MISMATCH, source_email=source.users[user_id].get('email'), compare_email=compare.users[user_id].get('email'))
                 elif self.field_only_in_compare(source, compare, 'email'):
                     if compare.users[user_id].get('email') == '':
-                        compare.add_finding(user_id, FindingType.MISSING_EMAIL)
+                        compare.add_finding(user_id, FindingType.EMAIL_MISSING)
                     elif not ValidationHelper.is_valid_email(compare.users[user_id].get('email')):
-                        compare.add_finding(user_id, FindingType.INVALID_EMAIL, email=compare.users[user_id].get('email'))
+                        compare.add_finding(user_id, FindingType.EMAIL_INVALID, email=compare.users[user_id].get('email'))
                 if self.field_supported(source, compare, 'email'):
                     # Compare the email domain
                     source_domain = source.users[user_id].get('email').split('@')[1]
@@ -141,14 +137,72 @@ class DynamicAnalysis:
             if not compare.has_field(rule.get('field')):
                 continue
             for user_id in compare.users.keys():
+                triggered = False
                 value = compare.users[user_id].get(rule.get('field'))
-                if value is None and rule.get('skip-empty', False):
-                    continue
-                if isinstance(value, datetime) and not ValidationHelper.has_date_value(value) and rule.get('skip-empty', False):
-                    continue
+                # Skip if the value is empty
+                if rule.get('skip-empty', False):
+                    if isinstance(value, datetime) and not ValidationHelper.has_date_value(value):
+                        continue
+                    elif isinstance(value, str) and value.strip() == '':
+                        continue
+                    elif isinstance(value, int) and value == 0:
+                        continue
+                    elif isinstance(value, float) and value == 0.0:
+                        continue
+                    elif isinstance(value, bool) and value == False:
+                        continue
+                    elif isinstance(value, list) and len(value) == 0:
+                        continue
+                    elif isinstance(value, dict) and len(value) == 0:
+                        continue
+                    elif value is None:
+                        continue
+
+                # Perform desired operation if defined
                 if rule.get('operation') == 'days_since':
                     # Calculate the number of days since the value
                     value = (datetime.now() - value).days
-                if rule.get('trigger') == 'greater_than':
-                    if value > rule.get('value'):
-                        compare.add_finding(user_id, Finding(rule.get('name'), rule.get('reason'), rule.get('severity')), value=value)
+                # Perform the comparison
+                if rule.get('trigger') == 'greater_than' and value > rule.get('value'):
+                    triggered = True
+                elif rule.get('trigger') == 'less_than' and value < rule.get('value'):
+                    triggered = True
+                elif rule.get('trigger') == 'equal_to' and value == rule.get('value'):
+                    triggered = True
+                elif rule.get('trigger') == 'not_equal_to' and value != rule.get('value'):
+                    triggered = True
+                elif rule.get('trigger') == 'equal_to_case' and str(value).casefold() == str(rule.get('value')).casefold():
+                    triggered = True
+                elif rule.get('trigger') == 'not_equal_to_case' and str(value).casefold() != str(rule.get('value')).casefold():
+                    triggered = True
+                elif rule.get('trigger') == 'contains' and str(rule.get('value')).casefold() in str(value).casefold():
+                    triggered = True
+                elif rule.get('trigger') == 'not_contains' and str(rule.get('value')).casefold() not in str(value).casefold():
+                    triggered = True
+                elif rule.get('trigger') == 'starts_with' and str(value).startswith(str(rule.get('value'))):
+                    triggered = True
+                elif rule.get('trigger') == 'ends_with' and str(value).endswith(str(rule.get('value'))):
+                    triggered = True
+                elif rule.get('trigger') == 'starts_with_case' and str(value).casefold().startswith(str(rule.get('value')).casefold()):
+                    triggered = True
+                elif rule.get('trigger') == 'ends_with_case' and str(value).casefold().endswith(str(rule.get('value')).casefold()):
+                    triggered = True
+                elif rule.get('trigger') == 'matches' and re.match(rule.get('regex'), str(value)):
+                    triggered = True
+                elif rule.get('trigger') == 'not_matches' and not re.match(rule.get('regex'), str(value)):
+                    triggered = True
+                elif rule.get('trigger') == 'in' and value in rule.get('values'):
+                    triggered = True
+                elif rule.get('trigger') == 'not_in' and value not in rule.get('values'):
+                    triggered = True
+                elif rule.get('trigger') == 'is_true' and value is True:
+                    triggered = True
+                elif rule.get('trigger') == 'is_false' and value is False:
+                    triggered = True
+                elif rule.get('trigger') == 'is_none' and value is None:
+                    triggered = True
+                elif rule.get('trigger') == 'is_not_none' and value is not None:
+                    triggered = True
+                    
+                if triggered:
+                    compare.add_finding(user_id, Finding(rule.get('name'), rule.get('reason'), rule.get('severity')), value=value)
