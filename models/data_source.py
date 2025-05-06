@@ -8,9 +8,9 @@ import regex
 import dateutil.parser
 import pytz
 
-from common_fields import common_fields
-from findings import Finding, Severity
-from validation_helper import ValidationHelper
+from config.common_fields import common_fields
+from .findings import Finding, Severity
+from analysis.validation_helper import ValidationHelper
 
 class DataSource:
     def __init__(self):

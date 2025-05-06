@@ -5,8 +5,8 @@ import logging
 import os
 import yaml
 import re
-from validation_helper import ValidationHelper
-from findings import FindingType, Finding
+from .validation_helper import ValidationHelper
+from models.findings import FindingType, Finding
 
 class DynamicAnalysis:
     def __init__(self, rules_file = None):

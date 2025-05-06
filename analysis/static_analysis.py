@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import regex
-from findings import FindingType
+from models.findings import FindingType
 
 class StaticAnalysis:
     def __init__(self, config):

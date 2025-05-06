@@ -5,7 +5,13 @@ import logging
 import os
 import json
 
-from receipt import Receipt
+from models.receipt import Receipt
+from models.data_source import DataSource
+from analysis.static_analysis import StaticAnalysis
+from analysis.dynamic_analysis import DynamicAnalysis
+from reporting.report import Report
+from config.config import Config
+
 """
 User Access Review Tool
 
@@ -28,12 +34,6 @@ License:
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-
-from data_source import DataSource
-from static_analysis import StaticAnalysis
-from dynamic_analysis import DynamicAnalysis
-from report import Report
-from config import Config
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='User Access Review Tool')

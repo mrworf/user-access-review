@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import csv
-from findings import Severity
+from models.findings import Severity
 
 class Report:
     def __init__(self):
