@@ -6,8 +6,8 @@ import regex
 from findings import FindingType
 
 class StaticAnalysis:
-    def __init__(self):
-        pass
+    def __init__(self, config):
+        self.config = config
 
     def validate(self, source):
         """Validate the source data
@@ -26,6 +26,9 @@ class StaticAnalysis:
                     source.add_finding(user['user_id'], FindingType.MISSING_EMAIL)
                 elif not regex.match(r'[^@]+@[^@]+\.[^@]+', user['email']):
                     source.add_finding(user['user_id'], FindingType.INVALID_EMAIL, email=user['email'])
+                domain = user['email'].split('@')[1]
+                if domain not in self.config.domains:
+                    source.add_finding(user['user_id'], FindingType.INVALID_EMAIL_DOMAIN, domain=domain)
 
             # Check name
             if source.has_field('first_name'):

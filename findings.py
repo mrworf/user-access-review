@@ -78,19 +78,26 @@ class FindingType:
     
     # Source of truth related findings
     NOT_IN_SOURCE = Finding("NOT_IN_SOURCE", "Not found in source of truth", Severity.ERROR)
-    NOT_ACTIVE_SOURCE = Finding("NOT_ACTIVE_SOURCE", 'Status is "{status}" in source of truth while comparison is "{compare_status}"', Severity.WARNING)
+    NOT_IN_SOURCE_ACTIVE = Finding("NOT_IN_SOURCE_ACTIVE", "Not found in source of truth and is active", Severity.ERROR)
+    NOT_IN_SOURCE_INACTIVE = Finding("NOT_IN_SOURCE_INACTIVE", "Not found in source of truth and is inactive", Severity.ERROR)
+    NOT_IN_SOURCE_SUSPENDED = Finding("NOT_IN_SOURCE_SUSPENDED", "Not found in source of truth and is suspended", Severity.ERROR)
+    NOT_IN_SOURCE_DELETED = Finding("NOT_IN_SOURCE_DELETED", "Not found in source of truth and is deleted", Severity.ERROR)
+    NOT_IN_SOURCE_UNKNOWN = Finding("NOT_IN_SOURCE_UNKNOWN", "Not found in source of truth and status is unknown", Severity.ERROR)
+
+    NOT_ACTIVE_SOURCE = Finding("NOT_ACTIVE_SOURCE", 'Status does not match between sources (source: "{source_status}", compare: "{compare_status}")', Severity.WARNING)
     NEVER_LOGGED_IN = Finding("NEVER_LOGGED_IN", "Never logged in", Severity.WARNING)
     NEVER_LOGGED_IN_AGED = Finding("NEVER_LOGGED_IN_AGED", "User has never logged in and is {age} days old", Severity.WARNING)
     
     # Comparison related findings
     NOT_IN_COMPARE = Finding("NOT_IN_COMPARE", "Does not exist in the comparison data", Severity.ERROR)
-    NOT_ACTIVE_COMPARE = Finding("NOT_ACTIVE_COMPARE", 'Status is "{status}" in the comparison data while source is "{source_status}"', Severity.WARNING)
+    NOT_ACTIVE_COMPARE = Finding("NOT_ACTIVE_COMPARE", 'Status does not match between sources (source: "{source_status}", compare: "{compare_status}")', Severity.WARNING)
     
     # Identity related findings
     FIRST_NAME_MISMATCH = Finding("FIRST_NAME_MISMATCH", 'First name does not match between sources (source: "{source_name}", compare: "{compare_name}")', Severity.WARNING)
     LAST_NAME_MISMATCH = Finding("LAST_NAME_MISMATCH", 'Last name does not match between sources (source: "{source_name}", compare: "{compare_name}")', Severity.WARNING)
     EMAIL_MISMATCH = Finding("EMAIL_MISMATCH", 'Email does not match between sources (source: "{source_email}", compare: "{compare_email}")', Severity.ERROR)
     DOMAIN_MISMATCH = Finding("DOMAIN_MISMATCH", 'Email domain does not match (source "{domain}", compare: "{compare_domain}")', Severity.ERROR)
+    INVALID_EMAIL_DOMAIN = Finding("INVALID_EMAIL_DOMAIN", 'Email domain is not approved (domain: "{domain}")', Severity.ERROR)
     MISSING_EMAIL = Finding("MISSING_EMAIL", "No email address", Severity.ERROR)
     INVALID_EMAIL = Finding("INVALID_EMAIL", "Invalid email address: {email}", Severity.ERROR)
     MISSING_FIRST_NAME = Finding("MISSING_FIRST_NAME", "No first name found", Severity.ERROR)

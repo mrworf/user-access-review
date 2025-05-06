@@ -1,8 +1,10 @@
+# Truth source
 truth:
   name: Google Workspace
   source: data/google.csv
   map: mappings/google-workspace.yml
 
+# Comparison sources
 comparisons:
   - name: Atlassian
     source: data/atlassian.csv
@@ -13,6 +15,27 @@ comparisons:
   - name: Monday
     source: data/monday.csv
     map: mappings/monday.yml
-    
+
+# List approved email domains here.
+# If a user's email domain is not in this list, they will be
+# flagged as an invalid email address.
+domains:
+  - formstack.com
+
+# Output file prefix
 output: test
+
+# Global rules file
 rules: rules.yml
+
+# Global options
+options:
+  # If this is set to true, all findings of severity WARNING will be
+  # ignored if source and comparison both show the user as deactivated.
+  # This is to avoid unnecessary warnings when a user is deactivated in
+  # both source and comparison.
+  - ignore_deactivated: true
+
+# List findings here to disable them on a global level.
+# You can also put this on a per-comparison basis.
+disable:

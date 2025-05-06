@@ -79,15 +79,26 @@ class DynamicAnalysis:
                         break
                 else:
                     # This means we won't check anything else. That could be a problem.
-                    compare.add_finding(user_id, FindingType.NOT_IN_SOURCE)
+                    if compare.users[user_id].get('status') == 'active':
+                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_ACTIVE)
+                    elif compare.users[user_id].get('status') == 'inactive':
+                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_INACTIVE)
+                    elif compare.users[user_id].get('status') == 'suspended':
+                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_SUSPENDED)
+                    elif compare.users[user_id].get('status') == 'deleted':
+                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_DELETED)
+                    elif compare.users[user_id].get('status') == 'unknown':
+                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE_UNKNOWN)
+                    else:
+                        compare.add_finding(user_id, FindingType.NOT_IN_SOURCE)
             else: # User exists in source
                 # Check if the user status has discrepancies
                 if self.fields_differ(source, compare, user_id, 'status'):
                     # Discrepancy, document it
                     if source.users[user_id].get('status') == 'active':
-                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_COMPARE, status=compare.users[user_id].get('status'), source_status=source.users[user_id].get('status'))
+                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_COMPARE, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
                     elif compare.users[user_id].get('status') == 'active':
-                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_SOURCE, status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
+                        compare.add_finding(user_id, FindingType.NOT_ACTIVE_SOURCE, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
                 if self.fields_differ(source, compare, user_id, 'first_name'):
                     compare.add_finding(user_id, FindingType.FIRST_NAME_MISMATCH, source_name=source.users[user_id].get('first_name'), compare_name=compare.users[user_id].get('first_name'))
                 elif self.field_only_in_compare(source, compare, 'first_name'):
@@ -121,7 +132,6 @@ class DynamicAnalysis:
                     compare.add_finding(user_id, FindingType.LOCATION_MISMATCH, source_location=source.users[user_id].get('location'), compare_location=compare.users[user_id].get('location'))
                 if self.fields_differ(source, compare, user_id, 'title'):
                     compare.add_finding(user_id, FindingType.TITLE_MISMATCH, source_title=source.users[user_id].get('title'), compare_title=compare.users[user_id].get('title'))
-        # Next
 
     def validate(self, compare):
         # Get the rules for validating the compare data

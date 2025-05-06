@@ -7,11 +7,6 @@ comparison:
         - hubspot
       skip:
         - something
-  rules:
-    - name: Don't allow non-company email addresses
-      field: user_id
-      pattern: ^(?![^@]+@company.com$).*$
-      reason: Non-company email addresses (\1) are not allowed
 
 validation:
   rules:

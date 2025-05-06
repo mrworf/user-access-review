@@ -51,11 +51,12 @@ def process_comparison(source: DataSource, compare: DataSource, analyzer: Static
 
 if __name__ == "__main__":
     args = parse_arguments()
-    analyzer = StaticAnalysis()
-    receipt = Receipt()
 
     # Load configuration from file
     config = Config.from_file(args.config)
+
+    analyzer = StaticAnalysis(config)
+    receipt = Receipt()
     receipt.audit_file(args.config, "Configuration file")
     
     # Process source of truth

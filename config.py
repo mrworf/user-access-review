@@ -30,6 +30,7 @@ class Config:
     output_prefix: str
     rules: Optional[str]
     comparisons: List[CompareConfig]
+    domains: List[str]
 
     def __post_init__(self):
         if not self.truth_name:
@@ -93,5 +94,6 @@ class Config:
             truth_rules=truth.get('rules'),
             output_prefix=config_data.get('output', 'output'),
             rules=config_data.get('rules'),
-            comparisons=comparisons
+            comparisons=comparisons,
+            domains=config_data.get('domains', [])
         )
