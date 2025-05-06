@@ -345,7 +345,7 @@ Each validation rule consists of the following components:
      - Useful for optional fields where empty values are acceptable
 
 3. **Validation Logic**
-   - `operation`: The operation to perform on the field value (required)
+   - `operation`: The operation to perform on the field value before testing (optional)
    - `trigger`: The condition that triggers the rule (required)
    - `value`: The value to compare against (required for most triggers)
 
