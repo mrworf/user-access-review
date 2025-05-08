@@ -11,6 +11,7 @@ mapping:
   last_login: "Last Login(UTC)"        # Using Last Login for last_login
   status: "User Status"                # Using User Status for status
   privileged: "Role"                   # Using Role to determine privileged status
+  sso: Login Type
 
 # Field value rewrites
 rewrite:
@@ -20,7 +21,6 @@ rewrite:
   privileged:
     "true": "Admin|Owner|Super Admin"  # Admin roles are privileged
     "false": ".*"                      # All other roles are non-privileged
-  created_date:
-    "1/1/1970": ""                     # Handle empty dates
-  last_login:
-    "1/1/1970": ""                     # Handle empty dates
+  sso:
+    "true": "Single Sign-On"
+    "false": ".*"
