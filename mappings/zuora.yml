@@ -1,0 +1,30 @@
+mapping:
+  user_id: "User ID"                   # Using UUID as unique identifier
+  email: "Work Email"                  # Using Work Email for email
+  first_name: "First Name"             # Direct mapping for first name
+  last_name: "Last Name"               # Direct mapping for last name
+  status: "Status"                     # Using Status for status
+  created_date: "Created On"           # Using Created On for created_date
+  end_date: "Deactivated On"           # Using Deactivated On for end_date
+  last_login: "Last Login"             # Using Last Login for last_login
+  privileged: "OneID Role"             # Using OneID Role to determine privileged status
+  sso: "SSO enabled"            # Using SSO enabled as two-factor indicator
+
+# Field value rewrites
+rewrite:
+  status:
+    "active": "ACTIVE"                 # Active status
+    "deactivated": "INACTIVE"          # Inactive status
+    "inactive": "PENDING_SETUP|PENDING_ACTIVATION"         # Pending setup status
+  privileged:
+    "true": "ADMIN"                    # Admin role is privileged
+    "false": "USER"                    # User role is non-privileged
+  created_date:
+    "1/1/1970": ""                     # Handle empty dates
+  last_login:
+    "1/1/1970": "-"                    # Handle empty dates
+  end_date:
+    "1/1/1970": "-"                    # Handle empty dates
+  sso:
+    "true": "true"                     # SSO enabled is true
+    "false": "false"                   # SSO disabled is false

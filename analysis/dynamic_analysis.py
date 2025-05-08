@@ -94,7 +94,18 @@ class DynamicAnalysis:
                 # Check if the user status has discrepancies
                 if self.fields_differ(source, compare, user_id, 'status'):
                     # Discrepancy, document it
-                    compare.add_finding(user_id, FindingType.STATUS_MISMATCH, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
+                    if source.users[user_id].get('status') == 'active' and compare.users[user_id].get('status') == 'deactivated':
+                        compare.add_finding(user_id, FindingType.COMPARE_ACTIVE_SOURCE_DEACTIVATED)
+                    elif source.users[user_id].get('status') == 'active' and compare.users[user_id].get('status') == 'inactive':
+                        compare.add_finding(user_id, FindingType.COMPARE_ACTIVE_SOURCE_INACTIVE)
+                    elif source.users[user_id].get('status') == 'active' and compare.users[user_id].get('status') == 'suspended':
+                        compare.add_finding(user_id, FindingType.COMPARE_ACTIVE_SOURCE_SUSPENDED)
+                    elif source.users[user_id].get('status') == 'active' and compare.users[user_id].get('status') == 'deleted':
+                        compare.add_finding(user_id, FindingType.COMPARE_ACTIVE_SOURCE_DELETED)
+                    elif source.users[user_id].get('status') == 'active' and compare.users[user_id].get('status') == 'unknown':
+                        compare.add_finding(user_id, FindingType.COMPARE_ACTIVE_SOURCE_UNKNOWN)
+                    else:                        
+                        compare.add_finding(user_id, FindingType.STATUS_MISMATCH, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
                 if self.fields_differ(source, compare, user_id, 'first_name'):
                     compare.add_finding(user_id, FindingType.FIRST_NAME_MISMATCH, source_name=source.users[user_id].get('first_name'), compare_name=compare.users[user_id].get('first_name'))
                 elif self.field_only_in_compare(source, compare, 'first_name'):
@@ -161,7 +172,8 @@ class DynamicAnalysis:
                 # Perform desired operation if defined
                 if rule.get('operation') == 'days_since':
                     # Calculate the number of days since the value
-                    value = (datetime.now() - value).days
+                    now = datetime.now(value.tzinfo) if hasattr(value, 'tzinfo') and value.tzinfo else datetime.now()
+                    value = (now - value).days
                 # Perform the comparison
                 if rule.get('trigger') == 'greater_than' and value > rule.get('value'):
                     triggered = True

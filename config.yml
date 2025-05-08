@@ -15,6 +15,36 @@ comparisons:
   - name: Monday
     source: data/monday.csv
     map: mappings/monday.yml
+  - name: Formstack
+    source: data/formstack.csv
+    map: mappings/formstack.yml
+  - name: Figma
+    source: data/figma.csv
+    map: mappings/figma.yml
+  - name: Crowdstrike
+    source: data/crowdstrike.csv
+    map: mappings/crowdstrike.yml
+  - name: Jumpcloud
+    source: data/jumpcloud.csv
+    map: mappings/jumpcloud.yml
+  - name: Ninjio
+    source: data/ninjio.csv
+    map: mappings/ninjio.yml
+  - name: Office 365
+    source: data/office365.csv
+    map: mappings/office365.yml
+  - name: Outreach
+    source: data/outreach.csv
+    map: mappings/outreach.yml
+  - name: Thoropass
+    source: data/thoropass.csv
+    map: mappings/thoropass.yml
+  - name: Zoom
+    source: data/zoom.csv
+    map: mappings/zoom.yml
+  - name: Zuora
+    source: data/zuora.csv
+    map: mappings/zuora.yml
 
 # List approved email domains here.
 # If a user's email domain is not in this list, they will be

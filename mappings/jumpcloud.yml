@@ -1,0 +1,10 @@
+mapping:
+  user_id: "email"              # Using email as unique identifier
+  email: "email"                # Direct mapping for email
+  created_date: "user_created_at"  # Direct mapping for account creation date
+  status: "user_state"          # Using user_state to determine status
+
+# Field value rewrites
+rewrite:
+  status:
+    "active": "ACTIVATED"      # ACTIVATED state means active

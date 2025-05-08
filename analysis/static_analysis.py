@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, timezone
 
 import regex
 from models.findings import FindingType
@@ -54,7 +54,9 @@ class StaticAnalysis:
             # Check last login
             if not source.has_logged_in(user):
                 if source.has_field('created_date'):
-                    age = (datetime.now() - user['created_date']).days
+                    # Use the same timezone as created_date
+                    now = datetime.now(user['created_date'].tzinfo)
+                    age = (now - user['created_date']).days
                     source.add_finding(user['user_id'], FindingType.LOGIN_NEVER_AGED, age=age)
                 else:
                     source.add_finding(user['user_id'], FindingType.LOGIN_NEVER)

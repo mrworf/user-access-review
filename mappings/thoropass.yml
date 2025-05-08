@@ -1,0 +1,30 @@
+options:
+  skip_first_rows: 1
+
+mapping:
+  user_id: "Email"                     # Using email as unique identifier
+  email: "Email"                       # Direct mapping for email
+  first_name: "First Name"             # Direct mapping for first name
+  last_name: "Last Name"               # Direct mapping for last name
+  department: "Department"             # Direct mapping for department
+  title: "Title"                       # Direct mapping for title
+  manager: "Manager Email"             # Direct mapping for manager email
+  created_date: "Start Date"           # Using start date as created date
+  end_date: "End Date"                 # Direct mapping for end date
+  type: "Employment Type"              # Using employment type for type
+  privileged: "Thoropass Permission"   # Using Thoropass Permission to determine privileged status
+
+# Field value rewrites
+rewrite:
+  type:
+    "fte": "Full-time"            # Full-time employees
+    "contractor": "Contractor"         # Contractors
+    "intern": "Intern"                 # Interns
+    unknown: .*
+  privileged:
+    "true": "Admin"                    # Admin permission is privileged
+    "false": ".*"                      # All other permissions are non-privileged
+  created_date:
+    "1/1/1970": ""                     # Handle empty dates
+  end_date:
+    "1/1/1970": ""                     # Handle empty dates

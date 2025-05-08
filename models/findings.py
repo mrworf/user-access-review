@@ -73,13 +73,13 @@ class FindingType:
     
     # Access related findings
     ACCESS_EXTRA = Finding("ACCESS_EXTRA", "Has access in comparison that is not in source of truth ({access})", Severity.WARNING)
-    ACCESS_INVALID = Finding("ACCESS_INVALID", "Invalid access: {access}", Severity.ERROR)
+    ACCESS_INVALID = Finding("ACCESS_INVALID", 'Invalid access: "{access}"', Severity.ERROR)
     ACCESS_MISSING = Finding("ACCESS_MISSING", "No access", Severity.ERROR)
     ACCESS_PRIVILEGED = Finding("ACCESS_PRIVILEGED", "Privileged access", Severity.COMPLIANCE)
 
     # Department related findings
-    DEPT_INVALID = Finding("DEPT_INVALID", "Invalid or unexpected department ({department})", Severity.ERROR)
-    DEPT_MISMATCH = Finding("DEPT_MISMATCH", "Department does not match between sources (source: {source_dept}, compare: {compare_dept})", Severity.WARNING)
+    DEPT_INVALID = Finding("DEPT_INVALID", 'Invalid or unexpected department: "{department}"', Severity.ERROR)
+    DEPT_MISMATCH = Finding('DEPT_MISMATCH', 'Department does not match between sources (source: "{source_dept}", compare: "{compare_dept}")', Severity.WARNING)
     DEPT_MISSING = Finding("DEPT_MISSING", "Missing department", Severity.ERROR)
 
     # Email related findings
@@ -95,6 +95,10 @@ class FindingType:
     # Login related findings
     LOGIN_NEVER = Finding("LOGIN_NEVER", "Never logged in", Severity.WARNING)
     LOGIN_NEVER_AGED = Finding("LOGIN_NEVER_AGED", "User has never logged in and is {age} days old", Severity.WARNING)
+
+    LOCATION_INVALID = Finding("LOCATION_INVALID", 'Invalid location: "{location}"', Severity.ERROR)
+    LOCATION_MISMATCH = Finding("LOCATION_MISMATCH", 'Location does not match between sources (source: "{source_location}", compare: "{compare_location}")', Severity.WARNING)
+    LOCATION_MISSING = Finding("LOCATION_MISSING", "No location", Severity.ERROR)
 
     # Manager related findings
     MANAGER_INACTIVE = Finding("MANAGER_INACTIVE", 'Manager "{manager}" is not active, but user is', Severity.ERROR)
@@ -116,12 +120,18 @@ class FindingType:
     SOURCE_MISSING_DELETED = Finding("SOURCE_MISSING_DELETED", "Not found in source of truth and is deleted", Severity.ERROR)
     SOURCE_MISSING_INACTIVE = Finding("SOURCE_MISSING_INACTIVE", "Not found in source of truth and is inactive", Severity.ERROR)
     SOURCE_MISSING_SUSPENDED = Finding("SOURCE_MISSING_SUSPENDED", "Not found in source of truth and is suspended", Severity.ERROR)
+    SOURCE_MISSING_DEACTIVATED = Finding("SOURCE_MISSING_DEACTIVATED", "Not found in source of truth and is deactivated", Severity.ERROR) 
     SOURCE_MISSING_UNKNOWN = Finding("SOURCE_MISSING_UNKNOWN", "Not found in source of truth and status is unknown", Severity.ERROR)
+    COMPARE_ACTIVE_SOURCE_DEACTIVATED = Finding("COMPARE_ACTIVE_SOURCE_DEACTIVATED", "Source is deactivated but compare is active", Severity.ERROR)
+    COMPARE_ACTIVE_SOURCE_INACTIVE = Finding("COMPARE_ACTIVE_SOURCE_INACTIVE", "Source is inactive but compare is active", Severity.ERROR)
+    COMPARE_ACTIVE_SOURCE_SUSPENDED = Finding("COMPARE_ACTIVE_SOURCE_SUSPENDED", "Source is suspended but compare is active", Severity.ERROR)
+    COMPARE_ACTIVE_SOURCE_DELETED = Finding("COMPARE_ACTIVE_SOURCE_DELETED", "Source is deleted but compare is active", Severity.ERROR)
+    COMPARE_ACTIVE_SOURCE_UNKNOWN = Finding("COMPARE_ACTIVE_SOURCE_UNKNOWN", "Source is unknown but compare is active", Severity.ERROR)
     STATUS_MISMATCH = Finding("STATUS_MISMATCH", 'Status does not match between sources (source: "{source_status}", compare: "{compare_status}")', Severity.ERROR)
 
     # Title related findings
     TITLE_INVALID = Finding("TITLE_INVALID", "Invalid title: {title}", Severity.WARNING)
-    TITLE_MISMATCH = Finding("TITLE_MISMATCH", "Title does not match between sources (source: {source_title}, compare: {compare_title})", Severity.WARNING)
+    TITLE_MISMATCH = Finding("TITLE_MISMATCH", 'Title does not match between sources (source: "{source_title}", compare: "{compare_title}")', Severity.WARNING)
     TITLE_MISSING = Finding("TITLE_MISSING", "No title", Severity.WARNING)
 
     @classmethod

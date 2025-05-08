@@ -1,0 +1,23 @@
+mapping:
+  user_id: "User Email"                # Using email as unique identifier
+  email: "User Email"                  # Direct mapping for email
+  first_name: "User Name"              # Using User Name for first/last name
+  last_name: "User Name"               # Using User Name for first/last name
+  title: "User Title"                  # Direct mapping for title
+  created_date: "Created At"           # Direct mapping for creation date
+  last_login: "User Current Sign In At" # Using current sign in as last login
+  status: "User Locked"                # Using User Locked to determine status
+
+# Field value rewrites
+rewrite:
+  first_name:
+    \1: "^([^ ]+)"                   # Extract first word as first name
+  last_name:
+    \1: "^[^ ]+ (.*)$"               # Extract everything after first word as last name
+  status:
+    "active": "false"                  # Not locked means active
+    "suspended": "true"                # Locked means suspended
+  created_date:
+    "1/1/1970": ""                     # Handle empty dates
+  last_login:
+    "1/1/1970": ""                     # Handle empty dates

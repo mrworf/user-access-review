@@ -1,0 +1,22 @@
+mapping:
+  user_id: email
+  email: email
+  first_name: name
+  last_name: name
+  title: job_title
+  last_login: last_seen_figma
+  created_date: date_added
+  privileged: role
+
+rewrite:
+  first_name:
+    \1: (^[^\s]+)
+  last_name:
+    \2: (^[^\s]+) +(.*)
+  status:
+    active: member|admin
+    inactive: guest
+    unknown: ^$
+  privileged:
+    true: admin
+    false: member|guest|^$

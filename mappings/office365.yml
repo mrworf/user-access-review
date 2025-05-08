@@ -1,0 +1,22 @@
+mapping:
+  user_id: "User principal name"        # Using UPN as unique identifier
+  email: "User principal name"          # Using UPN as email
+  first_name: "First name"              # Direct mapping for first name
+  last_name: "Last name"                # Direct mapping for last name
+  department: "Department"              # Direct mapping for department
+  title: "Title"                        # Direct mapping for title
+  location: "City"                      # Using City as location
+  created_date: "When created"          # Direct mapping for creation date
+  status: "Block credential"            # Using Block credential to determine status
+  privileged: "Licenses"                # Using Licenses to determine privileged status
+
+# Field value rewrites
+rewrite:
+  status:
+    "active": "False"                   # Not blocked means active
+    "suspended": "True"                 # Blocked means suspended
+  privileged:
+    "true": ".*Microsoft 365.*"         # Any Microsoft 365 license indicates privileged access
+    "false": ".*"                       # All other cases are non-privileged
+  created_date:
+    "1/1/1970": ""                     # Handle empty dates

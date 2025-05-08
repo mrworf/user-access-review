@@ -20,9 +20,10 @@ common_fields = {
     'last_login': 'date',
     'created_date': 'date',
     'end_date': 'date',
-    'status': ['active', 'inactive', 'suspended', 'deleted', 'unknown'],
+    'status': ['active', 'inactive', 'suspended', 'deactivated','deleted', 'unknown'],
     'type': ['employee', 'contractor', 'intern', 'vendor', 'unknown'],
     'two_factor': 'bool',
     'user_type': ['fte', 'part-time', 'contractor', 'vendor', 'intern', 'service', 'unknown'],
-    'privileged': 'bool'
+    'privileged': 'bool',
+    'sso': 'bool'
 } 

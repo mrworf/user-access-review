@@ -1,0 +1,18 @@
+mapping:
+  user_id: "Email"              # Using email as unique identifier
+  email: "Email"                # Direct mapping for email
+  first_name: "First Name"      # Direct mapping for first name
+  last_name: "Last Name"        # Direct mapping for last name
+  created_date: "Account Created"  # Direct mapping for account creation date
+  last_login: "Last Login"      # Direct mapping for last login
+  privileged: "CID Roles"       # Using roles to determine privileged status
+  two_factor: "Factors"         # Using Factors field to determine 2FA status
+
+# Field value rewrites
+rewrite:
+  privileged:
+    "true": ".*Administrator.*|.*Admin.*|.*Manager.*"  # Any role containing Admin/Manager is privileged
+    "false": ".*"              # All other roles are not privileged
+  two_factor:
+    "true": "TOTP"            # TOTP indicates 2FA is enabled
+    "false": ".*"             # Any other value means 2FA is not enabled

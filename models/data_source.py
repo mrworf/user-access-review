@@ -29,8 +29,9 @@ class DataSource:
         config = self.load_yaml(yaml_file)
         self.mapping = config.get('mapping', {})
         self.rewrite = config.get('rewrite', {})
+        self.options = config.get('options', {})
 
-        self.users = self.load_csv(csv_file)
+        self.users = self.load_csv(csv_file, skip_first_rows=self.options.get('skip_first_rows', 0), skip_last_rows=self.options.get('skip_last_rows', 0))
         self.name = os.path.splitext(os.path.basename(csv_file))[0]
 
         self.managers = {}
@@ -52,7 +53,10 @@ class DataSource:
                 value = ValidationHelper.NEVER_LOGGED_IN
             try:
                 # Try to parse the date and time, preserving original timezone
-                value = dateutil.parser.parse(value, tzinfos=self.tz)
+                if isinstance(value, datetime):
+                    value = value
+                else:
+                    value = dateutil.parser.parse(value, tzinfos=self.tz)
             except ValueError:
                 raise ValueError(f'Value "{value}" is not a valid date for field "{field}"')
         elif common_fields[field] == 'name':
@@ -74,52 +78,69 @@ class DataSource:
                 value = ''
         return value
 
-    def load_csv(self, file_path):
+    def load_csv(self, file_path, skip_first_rows=0, skip_last_rows=0):
         try:
+            # First read all lines to handle skipping
             with open(file_path, mode='r') as file:
-                csv_reader = csv.DictReader(file)
+                lines = file.readlines()
+                
+            # Skip first and last rows if specified
+            if skip_first_rows > 0:
+                lines = lines[skip_first_rows:]
+            if skip_last_rows > 0:
+                lines = lines[:-skip_last_rows]
+                
+            # Create a CSV reader from the filtered lines
+            csv_reader = csv.DictReader([line.encode('utf-8').decode('utf-8-sig') for line in lines])
 
-                # Check if any fields are regex fields, if so, replace with the matching field.
-                # Note tha this will use the first field that matches.
+            # Check if any fields are regex fields, if so, replace with the matching field.
+            # Note tha this will use the first field that matches.
+            for k, v in self.mapping.items():
+                # Loop through all fields in the row
+                for field in csv_reader.fieldnames:
+                    if regex.match(v, field):
+                        self.mapping[k] = field
+                        break
+
+            data = {}
+            for row in csv_reader:
+                line = {}
+                # Grab only the mapped fields, ignore the rest
                 for k, v in self.mapping.items():
-                    # Loop through all fields in the row
-                    for field in csv_reader.fieldnames:
-                        if regex.match(v, field):
-                            self.mapping[k] = field
-                            break
+                    line[k] = row.get(v)
+                    if line[k] is None:
+                        raise ValueError(f'Field "{v}" not found in CSV file')
+                    # Rewrite the value if needed
+                    if k in self.rewrite:
+                        # Next, loop through possible combos
+                        # Doing this in a loop allows for "else" conditions
+                        # Also allow use of backreferences to change the value
+                        for dst, src in self.rewrite[k].items():
+                            if src is None and line[k] == '':
+                                line[k] = dst
+                                break
+                            elif src is None:
+                                continue # We can't match a blank value
+                            match = regex.match(src, line[k])
+                            if match:
+                                line[k] = match.expand(dst)
+                                break
+                    # Conform the value to the expected type
+                    line[k] = self.conform(line[k], k)
+                if line['user_id'] in data:
+                    raise ValueError(f'Duplicate user ID "{line["user_id"]}" found in CSV file')
 
-                data = {}
-                for row in csv_reader:
-                    line = {}
-                    # Grab only the mapped fields, ignore the rest
-                    for k, v in self.mapping.items():
-                        line[k] = row.get(v)
-                        if line[k] is None:
-                            raise ValueError(f'Field "{v}" not found in CSV file')
-                        # Rewrite the value if needed
-                        if k in self.rewrite:
-                            # Next, loop through possible combos
-                            # Doing this in a loop allows for "else" conditions
-                            # Also allow use of backreferences to change the value
-                            for dst, src in self.rewrite[k].items():
-                                if src is None and line[k] == '':
-                                    line[k] = dst
-                                    break
-                                elif src is None:
-                                    continue # We can't match a blank value
-                                match = regex.match(src, line[k])
-                                if match:
-                                    line[k] = match.expand(dst)
-                                    break
-                        # Conform the value to the expected type
-                        line[k] = self.conform(line[k], k)
-                    if line['user_id'] in data:
-                        raise ValueError(f'Duplicate user ID "{line["user_id"]}" found in CSV file')
-                    # Lastly, we need to add any missing fields
-                    for k, v in common_fields.items():
-                        if k not in line:
-                            line[k] = None
-                    data[line['user_id']] = line
+                # Special case for status field
+                if 'status' not in line:
+                    # If not present, assume active
+                    line['status'] = 'active'
+
+                # Lastly, we need to add any missing fields
+                for k, v in common_fields.items():
+                    if k not in line:
+                        line[k] = None
+                
+                data[line['user_id']] = line
             return data
         except Exception as e:
             raise ValueError(f'Error loading CSV file "{file_path}": {e}')

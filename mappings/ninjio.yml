@@ -1,0 +1,15 @@
+mapping:
+  user_id: "email"              # Using email as unique identifier
+  email: "email"                # Direct mapping for email
+  first_name: "first_name"      # Direct mapping for first name
+  last_name: "last_name"        # Direct mapping for last name
+  department: "department"      # Direct mapping for department
+  title: "job_title"           # Direct mapping for job title
+  manager: "manager"           # Direct mapping for manager
+  status: "active"             # Using active field to determine status
+
+# Field value rewrites
+rewrite:
+  status:
+    "active": "True"           # True means active
+    "inactive": "False"        # False means inactive
