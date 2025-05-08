@@ -1,0 +1,5 @@
+inherit: atlassian.yml
+mapping:
+  last_login: Last seen in Jira Service Management -.*
+  privileged: Jira Service Management -.*
+

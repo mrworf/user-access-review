@@ -128,6 +128,7 @@ class FindingType:
     COMPARE_ACTIVE_SOURCE_DELETED = Finding("COMPARE_ACTIVE_SOURCE_DELETED", "Source is deleted but compare is active", Severity.ERROR)
     COMPARE_ACTIVE_SOURCE_UNKNOWN = Finding("COMPARE_ACTIVE_SOURCE_UNKNOWN", "Source is unknown but compare is active", Severity.ERROR)
     STATUS_MISMATCH = Finding("STATUS_MISMATCH", 'Status does not match between sources (source: "{source_status}", compare: "{compare_status}")', Severity.ERROR)
+    STATUS_MATCH = Finding("STATUS_MATCH", 'Status matches between sources (source: "{source_status}", compare: "{compare_status}")', Severity.COMPLIANCE)
 
     # Title related findings
     TITLE_INVALID = Finding("TITLE_INVALID", "Invalid title: {title}", Severity.WARNING)

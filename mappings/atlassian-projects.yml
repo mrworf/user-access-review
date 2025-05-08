@@ -1,0 +1,4 @@
+inherit: atlassian.yml
+mapping:
+  last_login: Last seen in Projects -.*
+  privileged: Projects -.*

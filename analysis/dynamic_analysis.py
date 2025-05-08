@@ -106,6 +106,8 @@ class DynamicAnalysis:
                         compare.add_finding(user_id, FindingType.COMPARE_ACTIVE_SOURCE_UNKNOWN)
                     else:                        
                         compare.add_finding(user_id, FindingType.STATUS_MISMATCH, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
+                else:
+                    compare.add_finding(user_id, FindingType.STATUS_MATCH, source_status=source.users[user_id].get('status'), compare_status=compare.users[user_id].get('status'))
                 if self.fields_differ(source, compare, user_id, 'first_name'):
                     compare.add_finding(user_id, FindingType.FIRST_NAME_MISMATCH, source_name=source.users[user_id].get('first_name'), compare_name=compare.users[user_id].get('first_name'))
                 elif self.field_only_in_compare(source, compare, 'first_name'):

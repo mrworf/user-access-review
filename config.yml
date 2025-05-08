@@ -9,7 +9,7 @@ comparisons:
   - name: Atlassian
     source: data/atlassian.csv
     map: mappings/atlassian.yml
-  - name: Atlassian Jira
+  - name: "Atlassian Jira"
     source: data/atlassian.csv
     map: mappings/atlassian-jira.yml
   - name: Monday

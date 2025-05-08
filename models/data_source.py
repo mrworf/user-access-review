@@ -30,9 +30,9 @@ class DataSource:
         self.mapping = config.get('mapping', {})
         self.rewrite = config.get('rewrite', {})
         self.options = config.get('options', {})
+        self.name = os.path.splitext(os.path.basename(yaml_file))[0]
 
         self.users = self.load_csv(csv_file, skip_first_rows=self.options.get('skip_first_rows', 0), skip_last_rows=self.options.get('skip_last_rows', 0))
-        self.name = os.path.splitext(os.path.basename(csv_file))[0]
 
         self.managers = {}
         # Separate out the managers for easier processing

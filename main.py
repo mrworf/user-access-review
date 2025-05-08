@@ -41,9 +41,11 @@ def parse_arguments():
     return parser.parse_args()
 
 def process_source(source: DataSource, analyzer: StaticAnalysis, output_prefix: str = None):
+    logging.info(f'Processing source of truth: {source.name}')
     analyzer.validate(source)
 
 def process_comparison(source: DataSource, compare: DataSource, analyzer: StaticAnalysis, rules_file: str = None):
+    logging.info(f'Processing comparison: {compare.name}')
     analyzer.validate(compare)
     dynamic = DynamicAnalysis(config, rules_file)
     dynamic.validate(compare)
@@ -51,6 +53,8 @@ def process_comparison(source: DataSource, compare: DataSource, analyzer: Static
 
 if __name__ == "__main__":
     args = parse_arguments()
+
+    logging.basicConfig(level=logging.INFO)
 
     # Load configuration from file
     config = Config.from_file(args.config)
