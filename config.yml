@@ -42,6 +42,15 @@ comparisons:
   - name: Figma
     source: data/figma.csv
     map: mappings/figma.yml
+  - name: Figma Developer
+    source: data/figma.csv
+    map: mappings/figma-devmode.yml
+  - name: Figma Figjam
+    source: data/figma.csv
+    map: mappings/figma-figjam.yml
+  - name: Figma Slides
+    source: data/figma.csv
+    map: mappings/figma-slides.yml
   - name: Crowdstrike
     source: data/crowdstrike.csv
     map: mappings/crowdstrike.yml
