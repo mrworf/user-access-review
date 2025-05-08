@@ -1,0 +1,4 @@
+inherit: figma.yml
+mapping:
+  last_login: last_seen_dev_mode
+

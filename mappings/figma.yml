@@ -7,6 +7,7 @@ mapping:
   last_login: last_seen_figma
   created_date: date_added
   privileged: role
+  paid: seat_type
 
 rewrite:
   first_name:
@@ -20,3 +21,6 @@ rewrite:
   privileged:
     true: admin
     false: member|guest|^$
+  paid:
+    true: full|dev|collab
+    false: view

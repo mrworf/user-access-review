@@ -12,6 +12,27 @@ comparisons:
   - name: "Atlassian Jira"
     source: data/atlassian.csv
     map: mappings/atlassian-jira.yml
+  - name: "Atlassian Jira Service Management"
+    source: data/atlassian.csv
+    map: mappings/atlassian-jira-service-management.yml
+  - name: "Atlassian Confluence"
+    source: data/atlassian.csv
+    map: mappings/atlassian-confluence.yml
+  - name: "Atlassian Compass"
+    source: data/atlassian.csv
+    map: mappings/atlassian-compass.yml
+  - name: "Atlassian Opsgenie"
+    source: data/atlassian.csv
+    map: mappings/atlassian-opsgenie.yml
+  - name: "Atlassian Projects"
+    source: data/atlassian.csv
+    map: mappings/atlassian-projects.yml
+  - name: "Atlassian Statuspage"
+    source: data/atlassian.csv
+    map: mappings/atlassian-statuspage.yml
+  - name: Monday
+    source: data/monday.csv
+    map: mappings/monday.yml
   - name: Monday
     source: data/monday.csv
     map: mappings/monday.yml
@@ -54,6 +75,9 @@ domains:
 
 # Output file prefix
 output: test
+include:
+  - paid
+  - status
 
 # Global rules file
 rules: rules.yml

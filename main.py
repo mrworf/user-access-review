@@ -69,27 +69,39 @@ if __name__ == "__main__":
     receipt.audit_file(config.truth_source, "Source of truth")
     receipt.audit_file(config.truth_map, "Source of truth field mapping")
     process_source(source, analyzer, config.output_prefix)
-    source.save(f'{config.output_prefix}_baseline.csv')
-    receipt.audit_file(f'{config.output_prefix}_baseline.csv', "Source of truth baseline")
+    #source.save(f'{config.output_prefix}_baseline.csv')
+    #receipt.audit_file(f'{config.output_prefix}_baseline.csv', "Source of truth baseline")
     master_report = [source]
 
     # Process comparisons if any
+    seen = []
     for comp in config.comparisons:
+        key = comp.safe_name + comp.source
+        if key in seen:
+            logging.warning(f'Skipping duplicate comparison: {comp.name}, {comp.source}, {comp.map_file}')
+            continue
+        seen.append(key)
         compare = DataSource(config)
         compare.load(comp.source, comp.map_file)
         receipt.audit_file(comp.source, "Comparison source")
         receipt.audit_file(comp.map_file, "Comparison field mapping")
         rules = comp.rules or config.rules
         process_comparison(source, compare, analyzer, rules)
-        compare.save(f'{config.output_prefix}_{comp.safe_name}_baseline.csv')
-
+        #compare.save(f'{config.output_prefix}_{comp.safe_name}_baseline.csv')
+        #receipt.audit_file(f'{config.output_prefix}_{comp.safe_name}_baseline.csv', "Comparison baseline")
         master_report.append(compare)
 
     # Save the master report (includes all sources)
-    report = Report()
+    report = Report(config.include)
     report.generate(master_report)
     report.save(f'{config.output_prefix}_findings.csv')
     receipt.audit_file(f'{config.output_prefix}_findings.csv', "Findings report")
+
+    # Generate master list
+    source.save(f'{config.output_prefix}_master.csv')
+    for source in master_report:
+        source.save(f'{config.output_prefix}_master.csv', append=True)
+    receipt.audit_file(f'{config.output_prefix}_master.csv', "Master list")
 
     # Save the receipt
     receipt_filename = f'{config.output_prefix}_receipt.txt'

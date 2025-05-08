@@ -32,6 +32,8 @@ class Config:
     comparisons: List[CompareConfig]
     domains: List[str]
     disable: List[str]
+    include: List[str]
+
     def __post_init__(self):
         if not self.truth_name:
             # Extract filename without path or extension
@@ -96,5 +98,6 @@ class Config:
             rules=config_data.get('rules'),
             comparisons=comparisons,
             domains=config_data.get('domains', []),
+            include=config_data.get('include', []),
             disable=config_data.get('disable', []) if config_data.get('disable') else []
         )

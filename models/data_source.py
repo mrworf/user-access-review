@@ -8,7 +8,7 @@ import regex
 import dateutil.parser
 import pytz
 
-from config.common_fields import common_fields
+from config.common_fields import common_fields, default_values
 from .findings import Finding, Severity
 from analysis.validation_helper import ValidationHelper
 
@@ -31,6 +31,9 @@ class DataSource:
         self.rewrite = config.get('rewrite', {})
         self.options = config.get('options', {})
         self.name = os.path.splitext(os.path.basename(yaml_file))[0]
+
+        if len(self.mapping) == 0:
+            raise ValueError(f'No mapping found in {yaml_file}')
 
         self.users = self.load_csv(csv_file, skip_first_rows=self.options.get('skip_first_rows', 0), skip_last_rows=self.options.get('skip_last_rows', 0))
 
@@ -130,10 +133,10 @@ class DataSource:
                 if line['user_id'] in data:
                     raise ValueError(f'Duplicate user ID "{line["user_id"]}" found in CSV file')
 
-                # Special case for status field
-                if 'status' not in line:
-                    # If not present, assume active
-                    line['status'] = 'active'
+                # Ensure default values are set for missing fields
+                for k, v in default_values.items():
+                    if k not in line:
+                        line[k] = v
 
                 # Lastly, we need to add any missing fields
                 for k, v in common_fields.items():
@@ -260,8 +263,12 @@ class DataSource:
     def has_field(self, field):
         return field in self.mapping
 
-    def save(self, file_path):
-        with open(file_path, 'w') as file:
-            writer = csv.DictWriter(file, fieldnames=common_fields.keys())
-            writer.writeheader()
-            writer.writerows(self.users.values())
+    def save(self, file_path, append=False):
+        with open(file_path, 'a' if append else 'w') as file:
+            writer = csv.DictWriter(file, fieldnames=['source'] + list(common_fields.keys()))
+            if not append:
+                writer.writeheader()
+            for user in self.users.values():
+                row = {'source': self.name}
+                row.update(user)
+                writer.writerow(row)

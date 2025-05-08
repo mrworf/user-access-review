@@ -8,6 +8,7 @@ mapping:
   created_date: Created At
   title: Title
   department: Department
+  paid: User Role
 
 rewrite:
   first_name:
@@ -17,3 +18,6 @@ rewrite:
   status:
     active: Activated
     inactive: Deactivated - No Access
+  paid:
+    false: Viewer
+    true: .*
